@@ -1,0 +1,98 @@
+[
+  {
+    "id": "CPA-001",
+    "repo": "dhruvkelawala/CLIProxyAPI",
+    "number": 1,
+    "url": "https://github.com/dhruvkelawala/CLIProxyAPI/issues/1",
+    "title": "Prove strict client account routing with an isolated recording fixture",
+    "priority": "P1",
+    "dependsOn": [],
+    "plan": "plans/001-prove-client-routing.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-002",
+    "repo": "dhruvkelawala/CLIProxyAPI",
+    "number": 2,
+    "url": "https://github.com/dhruvkelawala/CLIProxyAPI/issues/2",
+    "title": "Add durable client profiles and a v8 management contract",
+    "priority": "P1",
+    "dependsOn": [
+      "CPA-001"
+    ],
+    "plan": "plans/002-client-profile-contract.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-003",
+    "repo": "dhruvkelawala/CLIProxyAPI",
+    "number": 3,
+    "url": "https://github.com/dhruvkelawala/CLIProxyAPI/issues/3",
+    "title": "Enforce the selected subscription across retries, helpers, streams and WebSockets",
+    "priority": "P1",
+    "dependsOn": [
+      "CPA-001",
+      "CPA-002"
+    ],
+    "plan": "plans/003-enforce-account-only.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-004",
+    "repo": "dhruvkelawala/Cli-Proxy-API-Management-Center",
+    "number": 1,
+    "url": "https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/1",
+    "title": "Make account labels, enablement, availability and preference clear",
+    "priority": "P1",
+    "dependsOn": [],
+    "plan": "plans/004-accounts-ui.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-005",
+    "repo": "dhruvkelawala/Cli-Proxy-API-Management-Center",
+    "number": 2,
+    "url": "https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/2",
+    "title": "Let the dashboard choose and enforce a subscription for each client",
+    "priority": "P1",
+    "dependsOn": [
+      "CPA-002",
+      "CPA-003",
+      "CPA-004"
+    ],
+    "plan": "plans/005-client-routes-ui.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-006",
+    "repo": "dhruvkelawala/Cli-Proxy-API-Management-Center",
+    "number": 3,
+    "url": "https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/3",
+    "title": "Make account and client-route controls accessible in both themes",
+    "priority": "P2",
+    "dependsOn": [
+      "CPA-004",
+      "CPA-005"
+    ],
+    "plan": "plans/006-account-accessibility.md",
+    "status": "TODO"
+  },
+  {
+    "id": "CPA-007",
+    "repo": "dhruvkelawala/CLIProxyAPI",
+    "number": 4,
+    "url": "https://github.com/dhruvkelawala/CLIProxyAPI/issues/4",
+    "title": "Package pinned releases and configure both Macs through existing T3 instances",
+    "priority": "P1",
+    "dependsOn": [
+      "CPA-001",
+      "CPA-002",
+      "CPA-003",
+      "CPA-004",
+      "CPA-005",
+      "CPA-006"
+    ],
+    "plan": "plans/007-staged-rollout.md",
+    "status": "TODO"
+  }
+]
