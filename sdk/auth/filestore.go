@@ -13,6 +13,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/auth/claude"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/auth/codex"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 )
@@ -541,6 +544,104 @@ func deepEqualJSON(a, b any) bool {
 		return valA == valB
 	case nil:
 		return b == nil
+	default:
+		return false
+	}
+}
+
+// SaveEnrollment stages a private token-storage copy and atomically replaces its file.
+func (s *FileTokenStore) SaveEnrollment(ctx context.Context, auth *cliproxyauth.Auth) (string, error) {
+	if auth == nil {
+		return "", clientprofiles.Invalid("enrollment_unsupported", "credential")
+	}
+	path, err := s.resolveAuthPath(auth)
+	if err != nil {
+		return "", err
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	staged := auth.Clone()
+	switch storage := auth.Storage.(type) {
+	case nil:
+	case *claude.ClaudeTokenStorage:
+		copied := *storage
+		copied.DeviceIDs = append([]string(nil), storage.DeviceIDs...)
+		copied.Metadata = staged.Metadata
+		staged.Storage = &copied
+	case *codex.CodexTokenStorage:
+		copied := *storage
+		copied.Metadata = staged.Metadata
+		staged.Storage = &copied
+	default:
+		return "", clientprofiles.Invalid("enrollment_unsupported", "storage")
+	}
+	f, err := os.CreateTemp(filepath.Dir(path), ".account-enrollment-*")
+	if err != nil {
+		return "", err
+	}
+	temporary := f.Name()
+	defer os.Remove(temporary)
+	if err = f.Close(); err != nil {
+		return "", err
+	}
+	if staged.Attributes == nil {
+		staged.Attributes = make(map[string]string)
+	}
+	staged.Attributes[cliproxyauth.AttributePath] = temporary
+	if _, err = s.Save(ctx, staged); err != nil {
+		return "", err
+	}
+	f, err = os.OpenFile(temporary, os.O_RDWR, 0600)
+	if err != nil {
+		return "", err
+	}
+	err = f.Sync()
+	closeErr := f.Close()
+	if err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		return "", err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	current, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	if string(current) != string(before) {
+		return "", clientprofiles.Invalid("credential_changed", "credential")
+	}
+	if err = os.Rename(temporary, path); err != nil {
+		return "", err
+	}
+	auth.Storage = staged.Storage
+	if auth.Attributes == nil {
+		auth.Attributes = make(map[string]string)
+	}
+	auth.Attributes[cliproxyauth.AttributePath] = path
+	auth.Attributes[cliproxyauth.AttributeSource] = path
+	auth.Attributes[cliproxyauth.AttributeSourceBackend] = cliproxyauth.AuthSourceFile
+	return path, nil
+}
+
+func (s *FileTokenStore) SupportsEnrollment(auth *cliproxyauth.Auth) bool {
+	if auth == nil || auth.Metadata == nil {
+		return false
+	}
+	path, err := s.resolveAuthPath(auth)
+	if err != nil {
+		return false
+	}
+	info, err := os.Stat(path)
+	if err != nil || !info.Mode().IsRegular() {
+		return false
+	}
+	switch auth.Storage.(type) {
+	case nil, *claude.ClaudeTokenStorage, *codex.CodexTokenStorage:
+		return true
 	default:
 		return false
 	}

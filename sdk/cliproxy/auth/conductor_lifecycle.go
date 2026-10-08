@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	internalconfig "github.com/router-for-me/CLIProxyAPI/v8/internal/config"
 	log "github.com/sirupsen/logrus"
 )
@@ -155,12 +156,19 @@ func (m *Manager) Register(ctx context.Context, auth *Auth) (*Auth, error) {
 	return auth.Clone(), nil
 }
 
+// EnrollmentStore must atomically save enrollment without mutating shared Storage.
+type EnrollmentStore interface {
+	SaveEnrollment(context.Context, *Auth) (string, error)
+}
+type enrollmentContextKey struct{}
+
 type updateAuthMode int
 
 const (
 	updateModeReplace updateAuthMode = iota
 	updateModeRefresh
 	updateModePrepare
+	updateModeEnrollment
 )
 
 // UpdatePreparedAuth atomically merges request preparation results into the latest runtime auth
@@ -173,6 +181,14 @@ func (m *Manager) UpdatePreparedAuth(ctx context.Context, base, updated *Auth) (
 // under the manager lock, preserving concurrent modifications (proxy_url, notes, weights, etc.).
 func (m *Manager) UpdateRefreshedAuth(ctx context.Context, base, updated *Auth) (*Auth, error) {
 	return m.updateInternal(ctx, base, updated, updateModeRefresh)
+}
+
+// EnrollAccountReference assigns a durable UUID only after successful persistence.
+func (m *Manager) EnrollAccountReference(ctx context.Context, id string) (*Auth, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return m.updateInternal(context.WithValue(ctx, enrollmentContextKey{}, true), nil, &Auth{ID: id}, updateModeEnrollment)
 }
 
 // Update replaces an existing auth entry and notifies hooks.
@@ -199,6 +215,33 @@ func (m *Manager) updateInternal(ctx context.Context, base, auth *Auth, mode upd
 		m.mu.Unlock()
 		return nil, nil
 	}
+	if mode == updateModeEnrollment {
+		_, supportsEnrollment := m.store.(EnrollmentStore)
+		if !supportsEnrollment || existing.Metadata == nil || isRuntimeOnlyAuth(existing) || IsConfigAPIKeyAuth(existing) || shouldSkipPersist(ctx) || IsPluginVirtualAuth(existing) || !clientprofiles.Supported(existing.Provider) {
+			m.mu.Unlock()
+			return nil, clientprofiles.Invalid("enrollment_unsupported", "credential")
+		}
+		if _, assigned := existing.Metadata[clientprofiles.AccountRefMetadataKey]; assigned {
+			m.mu.Unlock()
+			return nil, clientprofiles.Invalid("already_enrolled", "credential")
+		}
+		if existing.Storage != nil {
+			if _, ok := existing.Storage.(interface{ SetMetadata(map[string]any) }); !ok {
+				m.mu.Unlock()
+				return nil, clientprofiles.Invalid("enrollment_unsupported", "storage")
+			}
+		}
+		ref := uuid.NewString()
+		for _, other := range m.auths {
+			if other != nil && other.Metadata[clientprofiles.AccountRefMetadataKey] == ref {
+				m.mu.Unlock()
+				return nil, clientprofiles.Invalid("duplicate_account_ref", "credential")
+			}
+		}
+		auth = existing.Clone()
+		auth.Metadata[clientprofiles.AccountRefMetadataKey] = ref
+	}
+
 	if m.authEpochs == nil {
 		m.authEpochs = make(map[string]uint64)
 	}
@@ -220,6 +263,14 @@ func (m *Manager) updateInternal(ctx context.Context, base, auth *Auth, mode upd
 		if merged != nil {
 			auth = merged
 			NormalizeCredentialMetadata(auth.Metadata)
+		}
+	}
+	if mode == updateModeRefresh || mode == updateModePrepare {
+		if ref, assigned := existing.Metadata[clientprofiles.AccountRefMetadataKey]; assigned {
+			if auth.Metadata == nil {
+				auth.Metadata = make(map[string]any)
+			}
+			auth.Metadata[clientprofiles.AccountRefMetadataKey] = ref
 		}
 	}
 	if auth.RegistrationEpoch != 0 && auth.RegistrationEpoch < m.authEpochs[auth.ID] {
@@ -283,9 +334,9 @@ func (m *Manager) updateInternal(ctx context.Context, base, auth *Auth, mode upd
 	persistMetaMint := (mode == updateModePrepare || mode == updateModeRefresh) && strings.EqualFold(strings.TrimSpace(auth.Provider), "meta")
 	if errPersist := m.persistLocked(ctx, auth); errPersist != nil {
 		// A minted Meta key must reach the store before requests can use it.
-		if persistMetaMint {
+		if persistMetaMint || mode == updateModeEnrollment {
 			m.mu.Unlock()
-			return nil, fmt.Errorf("persist meta auth: %w", errPersist)
+			return nil, fmt.Errorf("persist transactional auth: %w", errPersist)
 		}
 		// Ordinary persistence failures remain non-fatal, but never silent.
 		log.WithFields(log.Fields{"auth_id": auth.ID, "credential": auth.ID, "provider": auth.Provider}).Warnf("failed to persist updated auth %s (%s): %v", auth.Provider, auth.ID, errPersist)
@@ -496,10 +547,8 @@ func (m *Manager) persist(ctx context.Context, auth *Auth) error {
 	if IsConfigAPIKeyAuth(auth) {
 		return nil
 	}
-	if auth.Attributes != nil {
-		if v := strings.ToLower(strings.TrimSpace(auth.Attributes["runtime_only"])); v == "true" {
-			return nil
-		}
+	if isRuntimeOnlyAuth(auth) {
+		return nil
 	}
 	if IsPluginVirtualAuth(auth) {
 		return nil
@@ -509,6 +558,14 @@ func (m *Manager) persist(ctx context.Context, auth *Auth) error {
 		return nil
 	}
 
+	save := store.Save
+	if ctx != nil && ctx.Value(enrollmentContextKey{}) == true {
+		enrollmentStore, ok := store.(EnrollmentStore)
+		if !ok {
+			return clientprofiles.Invalid("enrollment_unsupported", "store")
+		}
+		save = enrollmentStore.SaveEnrollment
+	}
 	lockVal, _ := m.persistLocks.LoadOrStore(auth.ID, &authPersistLock{})
 	pLock, _ := lockVal.(*authPersistLock)
 	if pLock != nil {
@@ -522,13 +579,38 @@ func (m *Manager) persist(ctx context.Context, auth *Auth) error {
 		if shouldSkipPersist(ctx) {
 			return nil
 		}
-		_, err := store.Save(ctx, auth)
+		_, err := save(ctx, auth)
 		return err
 	}
 
 	if shouldSkipPersist(ctx) {
 		return nil
 	}
-	_, err := store.Save(ctx, auth)
+	_, err := save(ctx, auth)
 	return err
+}
+
+// SupportsAccountEnrollment reports transactional enrollment support for a credential.
+func (m *Manager) SupportsAccountEnrollment(id string) bool {
+	if m == nil {
+		return false
+	}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	a := m.auths[id]
+	if a == nil || !clientprofiles.Supported(a.Provider) || IsConfigAPIKeyAuth(a) || IsPluginVirtualAuth(a) || isRuntimeOnlyAuth(a) {
+		return false
+	}
+	_, ok := m.store.(EnrollmentStore)
+	if !ok {
+		return false
+	}
+	if capability, ok := m.store.(interface{ SupportsEnrollment(*Auth) bool }); ok {
+		return capability.SupportsEnrollment(a)
+	}
+	return true
+}
+
+func isRuntimeOnlyAuth(auth *Auth) bool {
+	return auth != nil && strings.EqualFold(strings.TrimSpace(auth.Attributes["runtime_only"]), "true")
 }

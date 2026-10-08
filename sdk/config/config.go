@@ -7,6 +7,9 @@ package config
 import internalconfig "github.com/router-for-me/CLIProxyAPI/v8/internal/config"
 
 type SDKConfig = internalconfig.SDKConfig
+type ClientProfile = internalconfig.ClientProfile
+type ClientProfilePolicy = internalconfig.ClientProfilePolicy
+type ClientProfileKey = internalconfig.ClientProfileKey
 
 type Config = internalconfig.Config
 

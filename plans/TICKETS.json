@@ -8,7 +8,9 @@
     "priority": "P1",
     "dependsOn": [],
     "plan": "plans/001-prove-client-routing.md",
-    "status": "TODO"
+    "status": "DONE",
+    "pullRequest": "https://github.com/dhruvkelawala/CLIProxyAPI/pull/6",
+    "mergeCommit": "f25648a8a563864fa37141dad5b619e456c672d2"
   },
   {
     "id": "CPA-002",
@@ -21,7 +23,7 @@
       "CPA-001"
     ],
     "plan": "plans/002-client-profile-contract.md",
-    "status": "TODO"
+    "status": "IMPLEMENTED_PENDING_VERIFICATION"
   },
   {
     "id": "CPA-003",
@@ -46,7 +48,8 @@
     "priority": "P1",
     "dependsOn": [],
     "plan": "plans/004-accounts-ui.md",
-    "status": "TODO"
+    "status": "TODO",
+    "owner": "External dashboard work by Claude"
   },
   {
     "id": "CPA-005",
@@ -61,7 +64,8 @@
       "CPA-004"
     ],
     "plan": "plans/005-client-routes-ui.md",
-    "status": "TODO"
+    "status": "TODO",
+    "owner": "External dashboard work by Claude"
   },
   {
     "id": "CPA-006",
@@ -75,7 +79,8 @@
       "CPA-005"
     ],
     "plan": "plans/006-account-accessibility.md",
-    "status": "TODO"
+    "status": "TODO",
+    "owner": "External dashboard work by Claude"
   },
   {
     "id": "CPA-007",
@@ -93,7 +98,7 @@
       "CPA-006"
     ],
     "plan": "plans/007-staged-rollout.md",
-    "status": "TODO"
+    "status": "DEFERRED"
   },
   {
     "id": "CPA-008",
@@ -108,6 +113,7 @@
       "CPA-006"
     ],
     "plan": "plans/008-shared-load-balancing.md",
-    "status": "TODO"
+    "status": "TODO",
+    "owner": "External dashboard work by Claude"
   }
 ]
