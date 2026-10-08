@@ -1,0 +1,35 @@
+=== RUN   TestShipIndependentOwnerAdversarialHTTP
+time="2026-10-08T13:04:00+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:761: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"64966d16166f6d82f9016bff9fb12b6669615a9c875a97f88b9fae9bde93d6ad\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"621be1cc-3e48-421e-8cae-22aef0fa57ea","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:762: POST /client-profiles -> 200 {"result":{"profile_ref":"6dc9b969-e37a-4cd2-9695-e6120d082fd5","label":"strict","revision":1,"policies":{"claude":{"mode":"only","account_ref":"621be1cc-3e48-421e-8cae-22aef0fa57ea"},"codex":{"mode":"automatic"}}},"revision":"\"f47945a2f997bb9406be6a321be5e00036818ab8768e728556924eb7aff9ef75\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:763: POST /client-profile-keys -> 200 {"result":{"key_ref":"bafe4cbe-f225-428a-a699-1757e15249ae","label":"strict","profile_ref":"6dc9b969-e37a-4cd2-9695-e6120d082fd5","revision":1},"revision":"\"2adecb1a5356787969d7cb5695a9e02c760a2a65225cd631cb1489ae290173c3\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T13:04:00+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:772: strict -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:772: spaced protected -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:772: mixed protected -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:772: query protected -> 401 {"error":"Invalid API key"}
+time="2026-10-08T13:04:00+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:772: spaced bearer -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:775: opaque accepted principal metadata -> 200 {"binding_metadata_present":false}
+    server_client_profiles_test.go:777: plugin claims protected principal absent from request -> 401 {"error":"Invalid API key"}
+--- PASS: TestShipIndependentOwnerAdversarialHTTP (0.27s)
+=== RUN   TestShipIndependentRestartRevocationReuse
+time="2026-10-08T13:04:00+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:781: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"d1776e5b6224ec12dc6124cbe5d3b4249db89d0c5f370c8c0642b59995ead053\"","target_states":{}}
+    server_client_profiles_test.go:782: POST /client-profiles -> 200 {"result":{"profile_ref":"95c30e6e-b9ad-44c7-999a-464ce4b12019","label":"auto","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"50c2fe990b65095117aa5f105636e701f0f2e1c17e2b10e95a13c2e4bbe277dd\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:783: POST /client-profile-keys -> 200 {"result":{"key_ref":"2a69b8ff-da42-47f7-99e2-151c883e2d16","label":"bound","profile_ref":"95c30e6e-b9ad-44c7-999a-464ce4b12019","revision":1},"revision":"\"2f949d8869a0de6c4b89bfbc7151dadcd95b9b25be19dcc699785ec03e5eea2e\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:784: DELETE /client-profile-keys/2a69b8ff-da42-47f7-99e2-151c883e2d16 -> 200 {"result":{"deleted":"2a69b8ff-da42-47f7-99e2-151c883e2d16"},"revision":"\"06c36416e3e372a662047d057cfe93b478e862f880cf4948dd5d48723ea1c9a8\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:790: fresh manager old credential -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:792: PUT /config/access/api-keys -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:790: fresh manager old credential -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:796: GET /config/access -> 200 {"api-keys":["synthetic-legacy-key","synthetic-client-key"],"client-profile-keys":[],"client-profiles":[{"label":"auto","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}},"profile_ref":"95c30e6e-b9ad-44c7-999a-464ce4b12019","revision":1}]}
+    server_client_profiles_test.go:798: PUT /config/access -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:800: PUT /config/access/revoked-client-profile-keys -> 400 {"error":"read_only_field","field":"access.revoked-client-profile-keys"}
+    server_client_profiles_test.go:801: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":[],"profiles":[{"profile_ref":"95c30e6e-b9ad-44c7-999a-464ce4b12019","label":"auto","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}],"revision":"\"a8c0bc877cc4a5d5400f57d8eb01830382f5e115d9143e19b35cc99c20dcccc6\"","target_states":{"95c30e6e-b9ad-44c7-999a-464ce4b12019":{"claude":"automatic","codex":"automatic"}}}
+    server_client_profiles_test.go:802: POST /client-profile-keys -> 200 {"result":{"key_ref":"c1b80d6e-1ce7-488b-bef4-8294b28ef790","label":"explicit reuse","profile_ref":"95c30e6e-b9ad-44c7-999a-464ce4b12019","revision":1},"revision":"\"dd77adb7cf10633f7c4cf9e15b3028a02971d0ca75d16de0f4fa3e76082dfaf9\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:790: fresh manager old credential -> 200 {"ok":true}
+--- PASS: TestShipIndependentRestartRevocationReuse (0.28s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/api	1.049s

@@ -1,0 +1,319 @@
+=== RUN   TestManagementClientProfileContract
+time="2026-10-08T13:02:31+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:106: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"d506fc3facc8659614b4d78fb684541246462bf9aeec1b2e6056ab69f42a01c6\"","target_states":{}}
+    server_client_profiles_test.go:112: GET /client-profiles without management authentication -> 401
+    server_client_profiles_test.go:112: GET /client-profile-keys without management authentication -> 401
+    server_client_profiles_test.go:112: GET /client-profile-accounts without management authentication -> 401
+    server_client_profiles_test.go:112: GET /client-profiles/capabilities without management authentication -> 401
+    server_client_profiles_test.go:117: GET /client-profiles/capabilities -> 200 {"binding_requires":["websocket_auth_enabled"],"contract_version":1,"enforcement":false,"enrollment_storage":["metadata","native_claude","native_codex"],"enrollment_stores":["file"],"management":true,"modes":["automatic","only"],"providers":["claude","codex"],"session_behavior":"fresh_session_required","strict_requests":"rejected","unsupported":["home_strict","mixed_provider_strict","plugin_virtual_credentials","unenrolled_credentials","non_file_enrollment","prefer","fallback"]}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"99bd375a-4f33-42d5-8d18-5b3149d4b336","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:122: POST /client-profiles -> 200 {"result":{"profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","label":"T3 Claude","revision":1,"policies":{"claude":{"mode":"only","account_ref":"99bd375a-4f33-42d5-8d18-5b3149d4b336"},"codex":{"mode":"automatic"}}},"revision":"\"6ef8b9c27c79bc0b8a531049eb7f965aa5cf8a0236214d459b145b608d161a34\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:124: POST /client-profiles/preview -> 200 {"enforcement":false,"policies":{"claude":{"mode":"only","account_ref":"99bd375a-4f33-42d5-8d18-5b3149d4b336"},"codex":{"mode":"automatic"}},"revision":"\"6ef8b9c27c79bc0b8a531049eb7f965aa5cf8a0236214d459b145b608d161a34\"","session_behavior":"fresh_session_required","strict_requests":"rejected","target_states":{"claude":"available","codex":"automatic"}}
+    server_client_profiles_test.go:125: POST /client-profile-keys -> 200 {"result":{"key_ref":"aedd14bb-bfd2-472a-8407-be9ab1645f02","label":"T3 key","profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","revision":1},"revision":"\"ce9e6f7474a0cae7d8694f9e5947ef693847faee591924e766f66c4213ad6453\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T13:02:31+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:127: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:128: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:132: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","account_ref":"99bd375a-4f33-42d5-8d18-5b3149d4b336","provider":"claude","label":"Synthetic account A","available":true,"state":"available","enrollment_supported":true,"target_supported":true}],"keys":[{"key_ref":"aedd14bb-bfd2-472a-8407-be9ab1645f02","label":"T3 key","profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","revision":1}],"profiles":[{"profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","label":"T3 Claude","revision":1,"policies":{"claude":{"mode":"only","account_ref":"99bd375a-4f33-42d5-8d18-5b3149d4b336"},"codex":{"mode":"automatic"}}}],"revision":"\"ce9e6f7474a0cae7d8694f9e5947ef693847faee591924e766f66c4213ad6453\"","target_states":{"5811b957-07ca-4339-af80-5d43e4952c2a":{"claude":"available","codex":"automatic"}}}
+    server_client_profiles_test.go:139: DELETE /client-profiles/5811b957-07ca-4339-af80-5d43e4952c2a -> 409 {"error":{"code":"profile_in_use","field":"5811b957-07ca-4339-af80-5d43e4952c2a"}}
+    server_client_profiles_test.go:141: PUT /client-profile-keys/aedd14bb-bfd2-472a-8407-be9ab1645f02 -> 200 {"result":{"key_ref":"aedd14bb-bfd2-472a-8407-be9ab1645f02","label":"T3 key","profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","revision":2},"revision":"\"9339aca33ac384393e6063ffadf138068bb5bc5c8639a17ab36a2c9f2fe4275c\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:142: GET /synthetic-business with synthetic credential -> 401 {"error":"Invalid API key"}
+time="2026-10-08T13:02:31+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:143: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:146: PUT /client-profiles/5811b957-07ca-4339-af80-5d43e4952c2a -> 412 {"error":{"code":"stale_revision","field":"If-Match"}}
+    server_client_profiles_test.go:148: PUT /client-profiles/5811b957-07ca-4339-af80-5d43e4952c2a -> 200 {"result":{"profile_ref":"5811b957-07ca-4339-af80-5d43e4952c2a","label":"Automatic","revision":2,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"e9d1f84a862d165a65faeff1b3f023f8a2205183f8b09ebb12c075f32e6135ab\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:149: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:150: DELETE /client-profile-keys/aedd14bb-bfd2-472a-8407-be9ab1645f02 -> 200 {"result":{"deleted":"aedd14bb-bfd2-472a-8407-be9ab1645f02"},"revision":"\"5e648aa3e0e6ef7144af94658486b7b9112d326b0bfd6ae8845fb36a23714c5b\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:151: GET /synthetic-business with synthetic credential -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:152: DELETE /client-profiles/5811b957-07ca-4339-af80-5d43e4952c2a -> 200 {"result":{"deleted":"5811b957-07ca-4339-af80-5d43e4952c2a"},"revision":"\"c3d599beae92a3faf3ecc45998e4e8875595a5c4d072b7e56bec525121f9b850\"","session_behavior":"fresh_session_required"}
+--- PASS: TestManagementClientProfileContract (0.10s)
+=== RUN   TestManagementClientProfileValidation
+time="2026-10-08T13:02:31+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:162: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"cc1763e861613609534811b559c6d5143131ddc7b086f2942af25f8767cf5ff2\"","target_states":{}}
+    server_client_profiles_test.go:164: POST /client-profiles -> 422 {"error":{"code":"missing_provider_policy","field":"3099bcfb-0b05-4e62-b2cc-05767efad525"}}
+    server_client_profiles_test.go:164: POST /client-profiles -> 422 {"error":{"code":"missing_provider_policy","field":"15cb0bfa-2618-40d1-bf6b-b08d79908f73"}}
+    server_client_profiles_test.go:164: POST /client-profiles -> 422 {"error":{"code":"unknown_mode","field":"claude"}}
+    server_client_profiles_test.go:164: POST /client-profiles -> 422 {"error":{"code":"unknown_provider","field":"other"}}
+    server_client_profiles_test.go:164: POST /client-profiles -> 422 {"error":{"code":"target_removed","field":"policies.claude"}}
+    server_client_profiles_test.go:167: POST /client-profiles -> 428 {"error":{"code":"revision_required","field":"If-Match"}}
+    server_client_profiles_test.go:168: PATCH /config/access/client-profiles -> 400 {"error":"read_only_field","field":"access.client-profiles"}
+    server_client_profiles_test.go:169: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"cc1763e861613609534811b559c6d5143131ddc7b086f2942af25f8767cf5ff2\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"821c0390-5c06-4731-a8a3-1c885da1c6de","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:180: POST /client-profiles -> 422 {"error":{"code":"duplicate_account_ref","field":"policies.claude"}}
+    server_client_profiles_test.go:183: POST /client-profiles -> 422 {"error":{"code":"target_removed","field":"policies.claude"}}
+--- PASS: TestManagementClientProfileValidation (0.20s)
+=== RUN   TestManagementClientProfileSaveFailureDoesNotPublish
+time="2026-10-08T13:02:31+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:200: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"4a5f9dcaf5a8167df7fdd65747c61029bbbaab243e082b9a90d77e9f28da7e3b\"","target_states":{}}
+    server_client_profiles_test.go:201: POST /client-profiles -> 200 {"result":{"profile_ref":"d7f01a37-5307-4aaf-aeac-036f2296be49","label":"Automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"5db1d91506b8bb62282d039efa97ca0e892bdb21b075e153d7469b36ef260545\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:216: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:217: GET /client-profile-keys -> 200 {"keys":null}
+--- PASS: TestManagementClientProfileSaveFailureDoesNotPublish (0.14s)
+=== RUN   TestManagementClientProfileReloadPending
+time="2026-10-08T13:02:31+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:223: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"4b0e23162740c89311b6b251b4578895bcbff361b76e35dfff7d908083cdf598\"","target_states":{}}
+    server_client_profiles_test.go:224: POST /client-profiles -> 200 {"result":{"profile_ref":"9cd6c8ef-864e-485c-bb4f-4b8e71783af9","label":"Automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"078f2e7306ed066b456a42e85875074e809c6eb025bb45c9ff42bee5077ceda5\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:236: GET /client-profiles -> 409 {"error":{"code":"reload_pending","field":"config"}}
+    server_client_profiles_test.go:237: PUT /client-profiles/9cd6c8ef-864e-485c-bb4f-4b8e71783af9 -> 409 {"error":{"code":"reload_pending","field":"config"}}
+--- PASS: TestManagementClientProfileReloadPending (0.07s)
+=== RUN   TestManagementClientProfileMissingActivationOwner
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:244: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"0cfa6f8eeb2177c0d98173093c06b67b29be4d959ef331e4d99cef55d33ddaa0\"","target_states":{}}
+    server_client_profiles_test.go:245: POST /client-profiles -> 200 {"result":{"profile_ref":"38f855be-9e7f-4537-9277-117528e66681","label":"Automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"e71036f315636722dfcf1fd62dd5ec7f10e557543635804d9c41893da7b7eecb\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:248: POST /client-profile-keys -> 503 {"error":{"code":"activation_unavailable","field":"access"}}
+    server_client_profiles_test.go:253: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+--- PASS: TestManagementClientProfileMissingActivationOwner (0.09s)
+=== RUN   TestManagementClientProfileUnsupportedDuplicate
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:257: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"9b76c2ac33ed9426aff824e050f67268edb57bde4fc27383d086af89922e94e4\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"2eeb3cfa-2558-40dd-a6bf-ffa9c370bd62","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:263: POST /client-profiles -> 422 {"error":{"code":"duplicate_account_ref","field":"policies.claude"}}
+--- PASS: TestManagementClientProfileUnsupportedDuplicate (0.08s)
+=== RUN   TestManagementClientProfileConfigProjection
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:270: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"fc11dfcfe7ae08222d4786c92f2dbd2ec6386f8ab1d74bbc941d83ab398ae98d\"","target_states":{}}
+    server_client_profiles_test.go:271: POST /client-profiles -> 200 {"result":{"profile_ref":"5cb3ecd5-bd90-4551-981a-c4b7a496b750","label":"Automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"8f6084af0c00668c48fe0371f9ce7be900ed8acda30c26b8cd1fc5ab388e90a7\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:272: POST /client-profile-keys -> 200 {"result":{"key_ref":"de87d7fd-9d4c-4219-b4c2-f5c61600ffe8","label":"key","profile_ref":"5cb3ecd5-bd90-4551-981a-c4b7a496b750","revision":1},"revision":"\"e9e0ac3084fdd613f32667a9498af69b0c56e80d21eb1d13e8bdfe18b4cba194\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:281: PUT /config/access/client-profile-keys -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:286: PUT /config/access/client-profile-keys -> 400 {"error":"read_only_field","field":"access.client-profile-keys"}
+--- PASS: TestManagementClientProfileConfigProjection (0.08s)
+=== RUN   TestManagementClientProfileLastKeyDeletionFailsClosed
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:290: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"0ee6955db78ace906f511d63a1ec8e07b2db9e0709b31113e9db8e0c6e3628e5\"","target_states":{}}
+    server_client_profiles_test.go:291: PUT /config/access/api-keys -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:292: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"74be6d5d10bb751abedea8d72de9c47284b6c78af40810ebd04d557054733895\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"c22e2382-b26d-46fa-830c-501ac27a383a","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:294: POST /client-profiles -> 200 {"result":{"profile_ref":"06206fbc-5202-4297-b2c0-c1f59a90ef56","label":"Only","revision":1,"policies":{"claude":{"mode":"only","account_ref":"c22e2382-b26d-46fa-830c-501ac27a383a"},"codex":{"mode":"automatic"}}},"revision":"\"73e1cb6604e4322f32cd01ff82e6fa5d6fe97a05beb394931e03dd5e1a9eb695\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:295: POST /client-profile-keys -> 200 {"result":{"key_ref":"1786a809-22af-49dc-bda0-9981dde759b7","label":"key","profile_ref":"06206fbc-5202-4297-b2c0-c1f59a90ef56","revision":1},"revision":"\"a61d4b575b6d857a52fa512d730fdff36dbbfd8302643bbc41015e7be725b495\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:296: DELETE /client-profile-keys/1786a809-22af-49dc-bda0-9981dde759b7 -> 409 {"error":{"code":"last_client_key","field":"1786a809-22af-49dc-bda0-9981dde759b7"}}
+time="2026-10-08T13:02:32+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:300: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+--- PASS: TestManagementClientProfileLastKeyDeletionFailsClosed (0.12s)
+=== RUN   TestManagementClientProfileProgrammaticInvalidConfiguration
+time="2026-10-08T13:02:32+01:00" level=error msg="invalid client profile configuration; business requests rejected" error="websocket_auth_required: oauth.providers.aistudio.ws-auth"
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T13:02:32+01:00" level=error msg="503 |            0s |       192.0.2.1 | GET     \"/v1/models\"" request_id=01a11b64-c946-7ac5-987b-441f33118572
+time="2026-10-08T13:02:32+01:00" level=error msg="503 |            0s |       192.0.2.1 | GET     \"/synthetic-ws\"" request_id=--------
+--- PASS: TestManagementClientProfileProgrammaticInvalidConfiguration (0.07s)
+=== RUN   TestManagementClientProfileProgrammaticRepairAndLegacy
+time="2026-10-08T13:02:32+01:00" level=error msg="invalid client profile configuration; business requests rejected" error="websocket_auth_required: oauth.providers.aistudio.ws-auth"
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T13:02:32+01:00" level=error msg="503 |            0s |       127.0.0.1 | GET     \"/synthetic-ws\"" request_id=--------
+time="2026-10-08T13:02:32+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v8/management/client-profiles/capabilities\"" request_id=--------
+time="2026-10-08T13:02:32+01:00" level=warning msg="404 |            0s |       127.0.0.1 | GET     \"/management.html\"" request_id=--------
+server clients and configuration updated: 0 clients (0 auth entries + 0 Gemini API keys + 0 Interactions API keys + 0 Claude API keys + 0 Codex keys + 0 xAI keys + 0 Meta API keys + 0 Vertex-compat + 0 OpenAI-compat)
+time="2026-10-08T13:02:32+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/synthetic-ws\"" request_id=--------
+time="2026-10-08T13:02:32+01:00" level=error msg="invalid client profile reload rejected" error="websocket_auth_required: oauth.providers.aistudio.ws-auth"
+time="2026-10-08T13:02:32+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/synthetic-ws\"" request_id=--------
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T13:02:32+01:00" level=info msg="200 |            0s |       192.0.2.1 | GET     \"/legacy-ws\"" request_id=--------
+--- PASS: TestManagementClientProfileProgrammaticRepairAndLegacy (0.06s)
+=== RUN   TestManagementClientProfileUnsupportedTargets
+=== RUN   TestManagementClientProfileUnsupportedTargets/config_api_key
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"9fda1ee97626bc39a0c1b47b16d5290a3198157eaadd3c5628cee1a2a86ad607\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/plugin_virtual
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"aab7a0dec584e6f4d45c83d76ea7573a229ad0c5a59985b9e7262edad0e285b2\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/runtime_only
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"3f8a0cf8a9b3448b23f1bc99191c9c465017e15d4de52d5ee840cdbf18808b37\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/runtime_only_upper
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"dcc5bb7616ca22e2363cf91f486d52f7de95393bde35a0917296e29f51a7ef3c\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false},{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/runtime_only_spaced
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"c2e78ef2adc901864a112fb5ffb9ef28da22e0ef876ecf2578d51b541c78472f\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false},{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/runtime_only_mixed
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"aa0a4cf62f8878c714c2c60753a36aaef1a945805b982c5d8540468291d19331\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/custom_storage
+time="2026-10-08T13:02:32+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"ec85585a76176e37dc668e05e3c9c21d8f9b31bb0790256871b0264537d40c96\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false},{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+=== RUN   TestManagementClientProfileUnsupportedTargets/no_store
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"589697d1bbb05ddbe135b448cfa0d6bef20b7346c9d274728b0a768f923cef57\"","target_states":{}}
+    server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":false,"state":"target_unsupported","enrollment_supported":false,"target_supported":false}]}
+    server_client_profiles_test.go:421: POST /client-profiles -> 422 {"error":{"code":"target_unsupported","field":"policies.claude"}}
+--- PASS: TestManagementClientProfileUnsupportedTargets (0.55s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/config_api_key (0.09s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/plugin_virtual (0.12s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/runtime_only (0.06s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/runtime_only_upper (0.06s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/runtime_only_spaced (0.05s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/runtime_only_mixed (0.05s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/custom_storage (0.06s)
+    --- PASS: TestManagementClientProfileUnsupportedTargets/no_store (0.06s)
+=== RUN   TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:440: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"6965fa3cc0b5a2b31fff7e538aef74fd9f16f6e51ab5e1b63cff6d2992b76386\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"a149f41c-e7f1-46a7-acc7-343f74cc504d","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:442: POST /client-profiles -> 200 {"result":{"profile_ref":"33ec7463-f6a5-46a5-949f-b4899c7e6e50","label":"strict","revision":1,"policies":{"claude":{"mode":"only","account_ref":"a149f41c-e7f1-46a7-acc7-343f74cc504d"},"codex":{"mode":"automatic"}}},"revision":"\"cfdaab70878f7231efde7254e2191b5d423911e06c30bf2752abbe490364c3dd\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:443: POST /client-profile-keys -> 200 {"result":{"key_ref":"6c1eea0e-6e99-4a65-a5f7-e35d09ddd841","label":"strict","profile_ref":"33ec7463-f6a5-46a5-949f-b4899c7e6e50","revision":1},"revision":"\"a5831122ca069af5b9d4770153ce8b7e2c4a0d3f635d5cf4144fde9bf3d0c6f8\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:444: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:454: GET /synthetic-business exclusive frontend provider -> 503 {"error":"Client profile enforcement is not available"}; required 503
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:454: GET /synthetic-business exclusive frontend provider -> 503 {"error":"Client profile enforcement is not available"}; required 503
+    server_client_profiles_test.go:463: DELETE /client-profile-keys/6c1eea0e-6e99-4a65-a5f7-e35d09ddd841 -> 200 {"result":{"deleted":"6c1eea0e-6e99-4a65-a5f7-e35d09ddd841"},"revision":"\"d2928eba9333a8e32309fc64bd14f306dc82072757e772b4e161407d59a356d2\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:454: GET /synthetic-business exclusive frontend provider -> 401 {"error":"Invalid API key"}; required 401
+--- PASS: TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding (0.09s)
+=== RUN   TestManagementClientProfileExclusiveOwnerLifecycle
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:468: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"979fe84294fb5182c239359ad9d3b440a36c033cdba73d633ec9baf0793ca989\"","target_states":{}}
+    server_client_profiles_test.go:473: POST /client-profiles -> 200 {"result":{"profile_ref":"32596ad3-ea0a-4584-a6df-82f5f9246d5f","label":"automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"82ed91819ed43100f8d375b01b2e69633ec0a8e5541faa8f43180fa2ac045d62\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:474: POST /client-profile-keys -> 200 {"result":{"key_ref":"6fd1ed68-36f4-44cf-87ea-c4363d49044c","label":"key","profile_ref":"32596ad3-ea0a-4584-a6df-82f5f9246d5f","revision":1},"revision":"\"dde199a2e18b516bdbeea7a85b1c21d3c5fa918cae2cea2590a75908a666d93f\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:476: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:477: PUT /client-profile-keys/6fd1ed68-36f4-44cf-87ea-c4363d49044c -> 200 {"result":{"key_ref":"6fd1ed68-36f4-44cf-87ea-c4363d49044c","label":"key","profile_ref":"32596ad3-ea0a-4584-a6df-82f5f9246d5f","revision":2},"revision":"\"e642b64c96f43206669cbe8f0d442c847e3e9c53450f5414a74d40c203a51f67\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:478: GET /synthetic-business with synthetic credential -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:479: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:514: PUT /client-profile-keys/6fd1ed68-36f4-44cf-87ea-c4363d49044c -> 200 {"result":{"key_ref":"6fd1ed68-36f4-44cf-87ea-c4363d49044c","label":"key","profile_ref":"32596ad3-ea0a-4584-a6df-82f5f9246d5f","revision":3},"revision":"\"b17d6fbec700ffde189a0d4f5d1030290466d606fb929a8c18bd340c69f66c5a\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:517: PUT /client-profile-keys/6fd1ed68-36f4-44cf-87ea-c4363d49044c -> 409 {"error":{"code":"key_already_exists","field":"6fd1ed68-36f4-44cf-87ea-c4363d49044c"}}
+    server_client_profiles_test.go:518: DELETE /client-profile-keys/6fd1ed68-36f4-44cf-87ea-c4363d49044c -> 200 {"result":{"deleted":"6fd1ed68-36f4-44cf-87ea-c4363d49044c"},"revision":"\"a45a9d1efc7a51744070386d91af864aa2d9b41ba42a8f1c473b2f8391036f63\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:519: DELETE /client-profiles/32596ad3-ea0a-4584-a6df-82f5f9246d5f -> 200 {"result":{"deleted":"32596ad3-ea0a-4584-a6df-82f5f9246d5f"},"revision":"\"19a9989bf4c30715e3ec8d670eb39239dcfb66dece6c3c8dbd529ad66e4ccd76\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:528: PUT /config/access/api-keys -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:529: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":[],"profiles":[],"revision":"\"904a3892544592a39bed6340b356b41c455ee8a17b4686682d743580c6985e06\"","target_states":{}}
+    server_client_profiles_test.go:536: POST /client-profiles -> 200 {"result":{"profile_ref":"e1a35e1a-b3d0-432a-b5cd-fd1bb66bf7cd","label":"reuse","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"d5dc11494d122c7ce5d6773b22da3e3ba6328a6efbce65fc2f09991704ab3c33\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:537: POST /client-profile-keys -> 200 {"result":{"key_ref":"3995f1ae-cd7f-47dd-9309-99a8de111fa2","label":"reuse","profile_ref":"e1a35e1a-b3d0-432a-b5cd-fd1bb66bf7cd","revision":1},"revision":"\"7e1929b64b35b7272bb23fd8fad6adf534f9d7718dc235e226dc476bc270ecc6\"","session_behavior":"fresh_session_required"}
+--- PASS: TestManagementClientProfileExclusiveOwnerLifecycle (0.11s)
+=== RUN   TestManagementClientProfileRevocationSaveFailure
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:542: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"30b70e6226c2193b81ec0a5f3e92a3d198c9d4a310f683dc9d698684ef97e9ad\"","target_states":{}}
+    server_client_profiles_test.go:546: POST /client-profiles -> 200 {"result":{"profile_ref":"79c7e7b0-5a35-413c-9cc3-0d3c137fd9fe","label":"automatic","revision":1,"policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}},"revision":"\"3bbf29894f7d9524c9f94f709d332de514e3939d6faa74fdac8cafdda3a60a68\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:547: POST /client-profile-keys -> 200 {"result":{"key_ref":"fd256d7d-2a50-4025-9a96-d2f618ecee8c","label":"key","profile_ref":"79c7e7b0-5a35-413c-9cc3-0d3c137fd9fe","revision":1},"revision":"\"42f3307d47b4330fb93e40be76f10058739b1a1609551d1e61090f16557fd029\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:592: PUT /client-profile-keys/fd256d7d-2a50-4025-9a96-d2f618ecee8c -> 200 {"result":{"key_ref":"fd256d7d-2a50-4025-9a96-d2f618ecee8c","label":"key","profile_ref":"79c7e7b0-5a35-413c-9cc3-0d3c137fd9fe","revision":2},"revision":"\"6f817cf71913bdfaaf9c515bce94108c39b4668565964bdb16c311a00fec76cf\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:601: PUT /config/access -> 200 {"config-version":8,"status":"ok"}
+    server_client_profiles_test.go:606: PUT /config/access/revoked-client-profile-keys -> 400 {"error":"read_only_field","field":"access.revoked-client-profile-keys"}
+    server_client_profiles_test.go:607: DELETE /config/access/revoked-client-profile-keys -> 400 {"error":"read_only_field","field":"access.revoked-client-profile-keys"}
+    server_client_profiles_test.go:616: PUT /config -> 200 {"config-version":8,"status":"ok"}
+--- PASS: TestManagementClientProfileRevocationSaveFailure (0.09s)
+=== RUN   TestManagementClientProfileRevokedOnlyStartup
+time="2026-10-08T13:02:33+01:00" level=warning msg="401 |            0s |       192.0.2.1 | GET     \"/v1/models\"" request_id=01a11b64-cccb-723e-a5d0-6b86d238f285
+time="2026-10-08T13:02:33+01:00" level=warning msg="401 |            0s |       192.0.2.1 | GET     \"/revoked-ws\"" request_id=--------
+time="2026-10-08T13:02:33+01:00" level=info msg="200 |            0s |       192.0.2.1 | GET     \"/revoked-ws\"" request_id=--------
+time="2026-10-08T13:02:33+01:00" level=error msg="invalid client profile reload rejected" error="websocket_auth_required: oauth.providers.aistudio.ws-auth"
+time="2026-10-08T13:02:33+01:00" level=warning msg="401 |            0s |       192.0.2.1 | GET     \"/revoked-ws\"" request_id=--------
+--- PASS: TestManagementClientProfileRevokedOnlyStartup (0.00s)
+=== RUN   TestShipIndependentPersistenceBoundary
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:679: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"a942a14e1db760b61ac8cd25b9f25dffa7139091145f3a717277579bb10a55e5\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"7894fc6f-0a68-489d-a141-d89eef4bf00c","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:693: enrollment response UUID independently matches credential JSON on disk
+    server_client_profiles_test.go:694: POST /client-profiles -> 200 {"result":{"profile_ref":"f5f441be-831f-457f-b252-18e8cdabd79b","label":"strict","revision":1,"policies":{"claude":{"mode":"only","account_ref":"7894fc6f-0a68-489d-a141-d89eef4bf00c"},"codex":{"mode":"automatic"}}},"revision":"\"79fd675430c16ef78746906e40fc2998964c14473eadd574441c041e50fb6d23\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:703: POST /client-profile-keys with storage failure -> 500 {"error":{"code":"persistence_failed"}}
+    server_client_profiles_test.go:707: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:708: POST /client-profile-keys -> 200 {"result":{"key_ref":"30082a8f-3e66-4f99-b41c-8474139ace55","label":"strict","profile_ref":"f5f441be-831f-457f-b252-18e8cdabd79b","revision":1},"revision":"\"3a34d98f58b320d38644b7ae83730b4743db0a0fa65c8a63381f32ecc0e087d4\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:709: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:710: DELETE /client-profile-keys/30082a8f-3e66-4f99-b41c-8474139ace55 -> 200 {"result":{"deleted":"30082a8f-3e66-4f99-b41c-8474139ace55"},"revision":"\"82adcc97c6f63b14add3ac930c618342325453f3939be06a584b0e4e5d3996e0\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:711: GET /synthetic-business with synthetic credential -> 401 {"error":"Invalid API key"}
+    server_client_profiles_test.go:712: GET /synthetic-business with synthetic credential -> 200 {"ok":true}
+    server_client_profiles_test.go:713: all 3 publication callbacks observed already persisted profile/key snapshots
+--- PASS: TestShipIndependentPersistenceBoundary (0.07s)
+=== RUN   TestShipIndependentEnrollmentFailureHTTP
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:716: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"d9d853eb2a41d6c8f4708a00fe670b6388983e51ea7dc908bae50b916e7b9dab\"","target_states":{}}
+    server_client_profiles_test.go:722: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:724: POST /client-profile-accounts/enroll -> 500 {"error":{"code":"persistence_failed"}}
+    server_client_profiles_test.go:729: failed enrollment left original credential JSON byte-identical and runtime unenrolled
+--- PASS: TestShipIndependentEnrollmentFailureHTTP (0.05s)
+=== RUN   TestShipIndependentOriginalExclusiveBypass
+time="2026-10-08T13:02:33+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:738: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"615951ab3abbd4d04e1ee97d8e26e7bc073ac5d432d724bc3d0d8d9b629bda6b\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"c0d79775-7321-4867-81e1-2bcacaf60ba6","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:740: POST /client-profiles -> 200 {"result":{"profile_ref":"d688fde4-1816-4a91-81c5-83729d08df93","label":"strict","revision":1,"policies":{"claude":{"mode":"only","account_ref":"c0d79775-7321-4867-81e1-2bcacaf60ba6"},"codex":{"mode":"automatic"}}},"revision":"\"b65389bdf653fb7a8a5d12966be70f48c9ca921857dbb850e522730192a13abf\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:741: POST /client-profile-keys -> 200 {"result":{"key_ref":"ae05b083-354e-418e-9fa2-0304daf47c4e","label":"strict","profile_ref":"d688fde4-1816-4a91-81c5-83729d08df93","revision":1},"revision":"\"f0ddeccd520dfbe362c4a1449aa2a0834b9650eeef3672b8223657490c4c955d\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:742: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+time="2026-10-08T13:02:33+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:749: GET /synthetic-business exclusive frontend provider -> 503 {"error":"Client profile enforcement is not available"}; required 503
+    server_client_profiles_test.go:753: DELETE /client-profile-keys/ae05b083-354e-418e-9fa2-0304daf47c4e -> 200 {"result":{"deleted":"ae05b083-354e-418e-9fa2-0304daf47c4e"},"revision":"\"8bcace4849c53ae70d3bd80f456102a31a89ea59cbc1f56ab4d5b2e2e6a85a2c\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:749: GET /synthetic-business exclusive frontend provider -> 401 {"error":"Invalid API key"}; required 401
+--- PASS: TestShipIndependentOriginalExclusiveBypass (0.08s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/api	2.441s
+=== RUN   TestClientProfileFileEnrollmentRefreshRename
+=== RUN   TestClientProfileFileEnrollmentRefreshRename/claude
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenameclaude3099157848/001/before.json
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenameclaude3099157848/001/.account-enrollment-2047381552
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenameclaude3099157848/001/before.json
+=== RUN   TestClientProfileFileEnrollmentRefreshRename/codex
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenamecodex2781610307/001/before.json
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenamecodex2781610307/001/.account-enrollment-17691766
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentRefreshRenamecodex2781610307/001/before.json
+--- PASS: TestClientProfileFileEnrollmentRefreshRename (0.02s)
+    --- PASS: TestClientProfileFileEnrollmentRefreshRename/claude (0.01s)
+    --- PASS: TestClientProfileFileEnrollmentRefreshRename/codex (0.01s)
+=== RUN   TestClientProfileFileEnrollmentFailureLeavesStorageAndFile
+Saving credentials to /var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/TestClientProfileFileEnrollmentFailureLeavesStorageAndFile501600409/001/.account-enrollment-1646721491
+--- PASS: TestClientProfileFileEnrollmentFailureLeavesStorageAndFile (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/auth	0.252s
+=== RUN   TestClientProfileEnrollmentRollback
+time="2026-10-08T13:02:31+01:00" level=warning msg="failed to persist updated auth claude (synthetic): persist store failure: permission denied" auth_id=synthetic credential=synthetic provider=claude
+--- PASS: TestClientProfileEnrollmentRollback (0.00s)
+=== RUN   TestClientProfileRefreshPreservesReference
+--- PASS: TestClientProfileRefreshPreservesReference (0.00s)
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/true
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TRUE
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_TRUE_
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TrUe
+=== RUN   TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_true_
+--- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication (0.00s)
+    --- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/true (0.00s)
+    --- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TRUE (0.00s)
+    --- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_TRUE_ (0.00s)
+    --- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TrUe (0.00s)
+    --- PASS: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_true_ (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth	0.261s
+=== RUN   TestClientProfileConfigRoundTrip
+--- PASS: TestClientProfileConfigRoundTrip (0.01s)
+=== RUN   TestClientProfileRevocationValidation
+=== RUN   TestClientProfileRevocationValidation/canonical
+=== RUN   TestClientProfileRevocationValidation/short
+=== RUN   TestClientProfileRevocationValidation/uppercase
+=== RUN   TestClientProfileRevocationValidation/duplicate
+=== RUN   TestClientProfileRevocationValidation/websocket-disabled
+--- PASS: TestClientProfileRevocationValidation (0.00s)
+    --- PASS: TestClientProfileRevocationValidation/canonical (0.00s)
+    --- PASS: TestClientProfileRevocationValidation/short (0.00s)
+    --- PASS: TestClientProfileRevocationValidation/uppercase (0.00s)
+    --- PASS: TestClientProfileRevocationValidation/duplicate (0.00s)
+    --- PASS: TestClientProfileRevocationValidation/websocket-disabled (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/config	0.208s
+=== RUN   TestClientProfileAccessReload
+--- PASS: TestClientProfileAccessReload (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/access/config_access	0.087s
+=== RUN   TestClientProfileValidation
+--- PASS: TestClientProfileValidation (0.00s)
+=== RUN   TestClientProfileAccountResolution
+--- PASS: TestClientProfileAccountResolution (0.00s)
+=== RUN   TestClientProfileBindingSnapshot
+--- PASS: TestClientProfileBindingSnapshot (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles	0.150s
