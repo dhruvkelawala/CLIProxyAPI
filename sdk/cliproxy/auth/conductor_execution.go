@@ -2015,7 +2015,13 @@ func warnLogUpstreamFailure(ctx context.Context, entry *log.Entry, provider, mod
 // If the registered executor for the auth provider implements RequestPreparer,
 // it will be invoked to modify the request (e.g., add headers).
 func (m *Manager) InjectCredentials(req *http.Request, authID string) error {
-	if req == nil || authID == "" {
+	if req == nil {
+		return nil
+	}
+	if clientprofiles.Strict(req.Context()) {
+		return profileExecutionError("profile_protocol_unsupported", "direct_transport")
+	}
+	if authID == "" {
 		return nil
 	}
 	m.mu.RLock()

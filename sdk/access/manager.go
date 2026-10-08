@@ -108,6 +108,16 @@ func (m *Manager) SetProvidersAndCredentialOwner(providers []Provider, owner Cre
 	}
 }
 
+// CredentialOwnerAvailable reports whether the configured owner remains installed.
+func (m *Manager) CredentialOwnerAvailable() bool {
+	if m == nil {
+		return false
+	}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.credentialOwner != nil
+}
+
 // BindAcceptedCredential validates configured ownership without rerunning frontend authentication.
 func (m *Manager) BindAcceptedCredential(ctx context.Context, r *http.Request, accepted *Result) (*Result, *AuthError) {
 	if m == nil {

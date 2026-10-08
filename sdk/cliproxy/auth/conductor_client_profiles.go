@@ -22,7 +22,7 @@ func (m *Manager) ValidateClientProfile(ctx context.Context) error {
 	if !snapshot.Bound {
 		return nil
 	}
-	if m == nil {
+	if m == nil || !clientprofiles.OwnerAvailable(ctx) {
 		return profileExecutionError("profile_owner_unavailable", "binding")
 	}
 	cfg := m.runtimeConfigSnapshot()

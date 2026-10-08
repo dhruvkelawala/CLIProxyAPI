@@ -13,6 +13,33 @@ func WithBinding(ctx context.Context, snapshot Snapshot) context.Context {
 	snapshot.Policies = clonePolicies(snapshot.Policies)
 	return context.WithValue(ctx, bindingContextKey{}, snapshot)
 }
+
+type ownerAvailabilityContextKey struct{}
+
+// WithOwnerAvailability retains a trusted ingress owner check outside serialized metadata.
+func WithOwnerAvailability(ctx context.Context, available func() bool) context.Context {
+	return context.WithValue(ctx, ownerAvailabilityContextKey{}, available)
+}
+
+func OwnerAvailable(ctx context.Context) bool {
+	if ctx == nil {
+		return true
+	}
+	available, _ := ctx.Value(ownerAvailabilityContextKey{}).(func() bool)
+	return available == nil || available()
+}
+
+// CopyBinding preserves both the accepted snapshot and its trusted owner check.
+func CopyBinding(dst, src context.Context) context.Context {
+	if snapshot := FromContext(src); snapshot.Bound {
+		dst = WithBinding(dst, snapshot)
+		if available, ok := src.Value(ownerAvailabilityContextKey{}).(func() bool); ok {
+			dst = WithOwnerAvailability(dst, available)
+		}
+	}
+	return dst
+}
+
 func clonePolicies(policies map[string]Policy) map[string]Policy {
 	out := make(map[string]Policy, len(policies))
 	for provider, policy := range policies {

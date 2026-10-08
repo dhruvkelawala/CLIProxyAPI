@@ -497,9 +497,7 @@ func (h *BaseAPIHandler) GetContextWithCancel(handler interfaces.APIHandler, c *
 			parentCtx = logging.WithRequestID(parentCtx, requestID)
 		}
 	}
-	if snapshot := clientprofiles.FromContext(requestCtx); snapshot.Bound {
-		parentCtx = clientprofiles.WithBinding(parentCtx, snapshot)
-	}
+	parentCtx = clientprofiles.CopyBinding(parentCtx, requestCtx)
 	newCtx, cancel := context.WithCancel(parentCtx)
 
 	endpoint := ""

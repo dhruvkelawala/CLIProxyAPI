@@ -169,7 +169,7 @@ func accessAuthMiddleware(manager *sdkaccess.Manager, realtimeError bool) gin.Ha
 		result, err := manager.Authenticate(c.Request.Context(), c.Request)
 		if err == nil {
 			if result != nil {
-				bindingCtx, errBinding := clientprofiles.Capture(c.Request.Context(), result.Metadata)
+				bindingCtx, errBinding := clientprofiles.Capture(clientprofiles.WithOwnerAvailability(c.Request.Context(), manager.CredentialOwnerAvailable), result.Metadata)
 				if errBinding != nil {
 					c.AbortWithStatusJSON(503, gin.H{"error": errBinding})
 					return
@@ -253,7 +253,7 @@ func realtimeAuthMiddleware(manager *sdkaccess.Manager, handler *codexlive.Handl
 			return
 		}
 		if issuerResult != nil {
-			bindingCtx, bindingErr := clientprofiles.Capture(c.Request.Context(), issuerResult.Metadata)
+			bindingCtx, bindingErr := clientprofiles.Capture(clientprofiles.WithOwnerAvailability(c.Request.Context(), manager.CredentialOwnerAvailable), issuerResult.Metadata)
 			if bindingErr != nil {
 				c.AbortWithStatusJSON(503, gin.H{"error": bindingErr})
 				return

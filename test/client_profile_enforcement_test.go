@@ -614,3 +614,79 @@ func TestClientProfileEnforcementSteeringRejectsBeforeUpgrade(t *testing.T) {
 		})
 	}
 }
+
+func TestClientProfileEnforcementBoundWSOwnerLoss(t *testing.T) {
+	for _, mode := range []string{"only", "automatic"} {
+		t.Run(mode, func(t *testing.T) { testClientProfileEnforcementBoundWSOwnerLoss(t, mode) })
+	}
+}
+func testClientProfileEnforcementBoundWSOwnerLoss(t *testing.T, mode string) {
+	f := newEnforcementFixture(t)
+	if mode == "automatic" {
+		f.cfg.ClientProfiles[0].Policies["codex"] = clientprofiles.Policy{Mode: "automatic"}
+	}
+	f.cfg.CommercialMode = true
+	f.cfg.RemoteManagement.DisableControlPanel = true
+	f.cfg.AuthDir = t.TempDir()
+	access := sdkaccess.NewManager()
+	gateway := api.NewServer(f.cfg, f.manager, access, filepath.Join(t.TempDir(), "config.yaml"))
+	server := httptest.NewServer(gateway.Handler())
+	defer server.Close()
+	t.Cleanup(func() { sdkaccess.UnregisterProvider(sdkaccess.AccessProviderTypeConfigAPIKey) })
+	conn, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http")+"/v1/responses", http.Header{"Authorization": []string{"Bearer " + enforcementKey}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	turn := func() string {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"response.create","model":"gpt-fixture-main","input":[]}`)); err != nil {
+			t.Fatal(err)
+		}
+		_, b, err := conn.ReadMessage()
+		if err != nil {
+			return err.Error()
+		}
+		return string(b)
+	}
+	if b := turn(); !strings.Contains(b, "response.completed") {
+		t.Fatal(b)
+	}
+	access.SetProvidersAndCredentialOwner(access.Providers(), nil)
+	b := turn()
+	if calls := f.recorder.snapshot(); len(calls) != 1 {
+		t.Fatalf("owner loss performed upstream effects: %v", calls)
+	}
+	t.Logf("turn after configured credential owner removed: %s; calls=%v", b, f.recorder.snapshot())
+	if !strings.Contains(b, "profile_owner_unavailable") {
+		t.Fatalf("bound socket continued after owner loss: %s", b)
+	}
+}
+
+type profileInjectRecorder struct {
+	*routingRecorder
+	injected string
+}
+
+func (r *profileInjectRecorder) PrepareRequest(req *http.Request, a *auth.Auth) error {
+	r.injected = a.ID
+	req.Header.Set("Authorization", "Bearer synthetic-"+a.ID)
+	return nil
+}
+func TestClientProfileEnforcementStrictInjectCredentials(t *testing.T) {
+	f := newEnforcementFixture(t)
+	r := &profileInjectRecorder{routingRecorder: f.recorder}
+	f.manager.RegisterExecutor(r)
+	req, _ := http.NewRequestWithContext(f.ctx, "POST", "http://synthetic.invalid/", nil)
+	err := f.manager.InjectCredentials(req, "fixture-b")
+	t.Logf("strict A-only direct injection error=%v injected=%s", err, r.injected)
+	if err == nil || !strings.Contains(err.Error(), "profile_protocol_unsupported") || r.injected != "" || req.Header.Get("Authorization") != "" {
+		t.Fatalf("strict direct injection performed effects on %s: %v", r.injected, err)
+	}
+	legacyReq, errRequest := http.NewRequest("POST", "http://synthetic.invalid/", nil)
+	if errRequest != nil {
+		t.Fatal(errRequest)
+	}
+	if errLegacy := f.manager.InjectCredentials(legacyReq, "fixture-b"); errLegacy != nil || r.injected != "fixture-b" {
+		t.Fatalf("legacy injection changed: injected=%s err=%v", r.injected, errLegacy)
+	}
+}
