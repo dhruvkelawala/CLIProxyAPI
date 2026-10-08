@@ -1,0 +1,12 @@
+=== RUN   TestSpecBoundWSOwnerLoss
+time="2026-10-08T13:14:30+01:00" level=info msg="responses websocket: client connected id=6bbe132a-78c7-40a7-a961-abe1c878fbae remote=127.0.0.1"
+time="2026-10-08T13:14:30+01:00" level=info msg="responses websocket: session closing id=6bbe132a-78c7-40a7-a961-abe1c878fbae"
+time="2026-10-08T13:14:30+01:00" level=info msg="responses websocket: upstream execution session closed id=6bbe132a-78c7-40a7-a961-abe1c878fbae"
+time="2026-10-08T13:14:30+01:00" level=info msg="200 |           1ms |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11b6f-bf35-7246-9efc-97145c58a3eb
+    client_profile_enforcement_test.go:630: turn after configured credential owner removed: {"type":"error","status":503,"error":{"code":"profile_owner_unavailable","field":"binding"}}; calls=[{fixture-a stream}]
+--- PASS: TestSpecBoundWSOwnerLoss (0.01s)
+=== RUN   TestSpecStrictInjectCredentials
+    client_profile_enforcement_test.go:640: strict A-only direct injection error={"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}} injected=
+--- PASS: TestSpecStrictInjectCredentials (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.389s
