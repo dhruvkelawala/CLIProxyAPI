@@ -85,7 +85,7 @@ func (h *Handler) profileRevisionLocked(c *gin.Context, mutation bool) ([]byte, 
 		profileError(c, 503, clientprofiles.Invalid("invalid_persisted_config", "config"))
 		return nil, "", false
 	}
-	if !sameProfileSlice(persisted.ClientProfiles, h.cfg.ClientProfiles) || !sameProfileSlice(persisted.ClientProfileKeys, h.cfg.ClientProfileKeys) || !sameProfileSlice(persisted.APIKeys, h.cfg.APIKeys) {
+	if !sameProfileSlice(persisted.ClientProfiles, h.cfg.ClientProfiles) || !sameProfileSlice(persisted.ClientProfileKeys, h.cfg.ClientProfileKeys) || !sameProfileSlice(persisted.APIKeys, h.cfg.APIKeys) || !sameProfileSlice(persisted.RevokedClientProfileKeys, h.cfg.RevokedClientProfileKeys) {
 		profileError(c, 409, clientprofiles.Invalid("reload_pending", "config"))
 		return nil, "", false
 	}
@@ -302,6 +302,7 @@ func (h *Handler) ClientProfileKeys(c *gin.Context) {
 		}
 		key := clientprofiles.Key{Ref: uuid.NewString(), Label: body.Label, ProfileRef: body.ProfileRef, Fingerprint: clientprofiles.Fingerprint(body.APIKey), Revision: 1}
 		next.ClientProfileKeys = append(next.ClientProfileKeys, key)
+		next.RevokedClientProfileKeys = clearRevokedProfileKey(next.RevokedClientProfileKeys, key.Fingerprint)
 		result = key
 	} else {
 		index := -1
@@ -331,6 +332,7 @@ func (h *Handler) ClientProfileKeys(c *gin.Context) {
 				return
 			}
 			next.APIKeys = filtered
+			next.RevokedClientProfileKeys = append(next.RevokedClientProfileKeys, key.Fingerprint)
 			result = gin.H{"deleted": key.Ref}
 		} else {
 			var body struct {
@@ -356,6 +358,8 @@ func (h *Handler) ClientProfileKeys(c *gin.Context) {
 						next.APIKeys[i] = strings.TrimSpace(body.APIKey)
 					}
 				}
+				next.RevokedClientProfileKeys = append(next.RevokedClientProfileKeys, key.Fingerprint)
+				next.RevokedClientProfileKeys = clearRevokedProfileKey(next.RevokedClientProfileKeys, newFingerprint)
 				key.Fingerprint = newFingerprint
 			}
 			if body.Label != "" {
@@ -416,7 +420,7 @@ func profileConfigData(raw []byte, next *config.Config) ([]byte, error) {
 	if err = yaml.Unmarshal(data, &doc); err != nil {
 		return nil, err
 	}
-	for name, value := range map[string]any{"client-profiles": next.ClientProfiles, "client-profile-keys": next.ClientProfileKeys, "api-keys": next.APIKeys} {
+	for name, value := range map[string]any{"client-profiles": next.ClientProfiles, "client-profile-keys": next.ClientProfileKeys, "api-keys": next.APIKeys, "revoked-client-profile-keys": next.RevokedClientProfileKeys} {
 		var node yaml.Node
 		if err = node.Encode(value); err != nil {
 			return nil, err
@@ -492,4 +496,14 @@ func (h *Handler) SetClientProfilePublisher(publish func(*config.Config)) {
 
 func sameProfileSlice[T any](a, b []T) bool {
 	return len(a) == 0 && len(b) == 0 || reflect.DeepEqual(a, b)
+}
+
+func clearRevokedProfileKey(keys []string, fingerprint string) []string {
+	result := keys[:0]
+	for _, key := range keys {
+		if key != fingerprint {
+			result = append(result, key)
+		}
+	}
+	return result
 }

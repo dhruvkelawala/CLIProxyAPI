@@ -24,15 +24,7 @@ func Register(cfg *sdkconfig.SDKConfig) {
 		return
 	}
 
-	p := newProvider(sdkaccess.DefaultAccessProviderName, keys)
-	p.profiles = append([]clientprofiles.Profile(nil), cfg.ClientProfiles...)
-	for i := range p.profiles {
-		p.profiles[i].Policies = make(map[string]clientprofiles.Policy)
-		for provider, policy := range cfg.ClientProfiles[i].Policies {
-			p.profiles[i].Policies[provider] = policy
-		}
-	}
-	p.bindings = append([]clientprofiles.Key(nil), cfg.ClientProfileKeys...)
+	p := configuredProvider(cfg)
 	sdkaccess.RegisterProvider(
 		sdkaccess.AccessProviderTypeConfigAPIKey,
 		p,
@@ -163,4 +155,17 @@ func normalizeKeys(keys []string) []string {
 		return nil
 	}
 	return normalized
+}
+
+func configuredProvider(cfg *sdkconfig.SDKConfig) *provider {
+	p := newProvider(sdkaccess.DefaultAccessProviderName, normalizeKeys(cfg.APIKeys))
+	p.profiles = append([]clientprofiles.Profile(nil), cfg.ClientProfiles...)
+	for i := range p.profiles {
+		p.profiles[i].Policies = make(map[string]clientprofiles.Policy)
+		for provider, policy := range cfg.ClientProfiles[i].Policies {
+			p.profiles[i].Policies[provider] = policy
+		}
+	}
+	p.bindings = append([]clientprofiles.Key(nil), cfg.ClientProfileKeys...)
+	return p
 }

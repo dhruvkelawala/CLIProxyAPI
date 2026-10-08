@@ -61,3 +61,33 @@ func TestClientProfileConfigRoundTrip(t *testing.T) {
 		t.Fatal("accepted unauthenticated websocket binding")
 	}
 }
+
+func TestClientProfileRevocationValidation(t *testing.T) {
+	key := clientprofiles.Fingerprint("synthetic-revoked")
+	cfg := &Config{WebsocketAuth: true}
+	cfg.RevokedClientProfileKeys = []string{key}
+	cfg.ClientProfileKeys = []clientprofiles.Key{{Fingerprint: key}}
+	if err := cfg.ValidateClientProfiles(); err == nil || err.(*clientprofiles.Error).Code != "revoked_key_bound" {
+		t.Fatal("active revoked collision allowed", err)
+	}
+	for _, tc := range []struct {
+		name    string
+		revoked []string
+		ws      bool
+	}{
+		{"canonical", []string{key}, true},
+		{"short", []string{"abc"}, true},
+		{"uppercase", []string{strings.ToUpper(key)}, true},
+		{"duplicate", []string{key, key}, true},
+		{"websocket-disabled", []string{key}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{WebsocketAuth: tc.ws}
+			cfg.RevokedClientProfileKeys = tc.revoked
+			err := cfg.ValidateClientProfiles()
+			if (err == nil) != (tc.name == "canonical") {
+				t.Fatal(err)
+			}
+		})
+	}
+}

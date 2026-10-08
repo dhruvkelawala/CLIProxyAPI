@@ -62,9 +62,10 @@ type SDKConfig struct {
 	ClaudeCode ClaudeCodeConfig `yaml:"claude-code" json:"claude-code"`
 
 	// APIKeys is a list of keys for authenticating clients to this proxy server.
-	APIKeys           []string                 `yaml:"api-keys" json:"api-keys"`
-	ClientProfiles    []clientprofiles.Profile `yaml:"client-profiles,omitempty" json:"client-profiles,omitempty"`
-	ClientProfileKeys []clientprofiles.Key     `yaml:"client-profile-keys,omitempty" json:"client-profile-keys,omitempty"`
+	APIKeys                  []string                 `yaml:"api-keys" json:"api-keys"`
+	RevokedClientProfileKeys []string                 `yaml:"revoked-client-profile-keys,omitempty" json:"revoked-client-profile-keys,omitempty"`
+	ClientProfiles           []clientprofiles.Profile `yaml:"client-profiles,omitempty" json:"client-profiles,omitempty"`
+	ClientProfileKeys        []clientprofiles.Key     `yaml:"client-profile-keys,omitempty" json:"client-profile-keys,omitempty"`
 
 	// PassthroughHeaders controls whether upstream response headers are forwarded to downstream clients.
 	// Default is false (disabled).

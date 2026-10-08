@@ -53,6 +53,7 @@ func (h *Handler) ConfigV8(c *gin.Context) {
 				}
 			}
 			h.injectV8APIKeyAuthIndexesLocked(root, data)
+			deleteConfigV8Path(root, []string{"access", "revoked-client-profile-keys"})
 			if keys := configV8Node(root, []string{"access", "client-profile-keys"}); keys != nil && keys.Kind == yaml.SequenceNode {
 				for _, key := range keys.Content {
 					deleteConfigV8Path(key, []string{"fingerprint"})
@@ -165,7 +166,7 @@ func (h *Handler) ConfigV8(c *gin.Context) {
 	if !yamlRequest && c.Request.Method != http.MethodDelete {
 		preserveV8ProfileFingerprints(root, before)
 	}
-	for _, field := range []string{"access.client-profiles", "access.client-profile-keys"} {
+	for _, field := range []string{"access.client-profiles", "access.client-profile-keys", "access.revoked-client-profile-keys"} {
 		parts := strings.Split(field, ".")
 		a, b := configV8Node(before, parts), configV8Node(root, parts)
 		var oldValue, newValue any
@@ -334,6 +335,16 @@ func mergeConfigV8Patch(dst, src *yaml.Node) {
 }
 
 func preserveV8ProfileFingerprints(root, before *yaml.Node) {
+	path := []string{"access", "revoked-client-profile-keys"}
+	if configV8Node(root, path) == nil {
+		if old := configV8Node(before, path); old != nil {
+			access := configV8Node(root, []string{"access"})
+			if access != nil {
+				access.Content = append(access.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "revoked-client-profile-keys"}, cloneConfigV8Node(old))
+			}
+		}
+	}
+
 	next := configV8Node(root, []string{"access", "client-profile-keys"})
 	old := configV8Node(before, []string{"access", "client-profile-keys"})
 	if next == nil || old == nil || next.Kind != yaml.SequenceNode || old.Kind != yaml.SequenceNode {

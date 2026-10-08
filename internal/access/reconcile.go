@@ -92,7 +92,7 @@ func ApplyAccessProviders(manager *sdkaccess.Manager, oldCfg, newCfg *config.Con
 		return false, fmt.Errorf("reconciling access providers: %w", err)
 	}
 
-	manager.SetProviders(providers)
+	manager.SetProvidersAndCredentialOwner(providers, configaccess.NewCredentialOwner(&newCfg.SDKConfig))
 
 	if len(added)+len(updated)+len(removed) > 0 {
 		log.Debugf("auth providers reconciled (added=%d updated=%d removed=%d)", len(added), len(updated), len(removed))

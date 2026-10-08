@@ -46,7 +46,7 @@ func (s *Server) UpdateClientsContext(ctx context.Context, cfg *config.Config) b
 	if s == nil || cfg == nil {
 		return false
 	}
-	if len(cfg.ClientProfileKeys) > 0 && s.accessManager == nil {
+	if (len(cfg.ClientProfileKeys) > 0 || len(cfg.RevokedClientProfileKeys) > 0) && s.accessManager == nil {
 		log.Error("client profile reload requires access ownership")
 		return false
 	}
@@ -184,7 +184,7 @@ func (s *Server) UpdateClientsContext(ctx context.Context, cfg *config.Config) b
 		}
 	}
 	s.wsAuthEnabled.Store(cfg.WebsocketAuth)
-	if accessConfigApplied || len(cfg.ClientProfileKeys) == 0 {
+	if accessConfigApplied || (len(cfg.ClientProfileKeys) == 0 && len(cfg.RevokedClientProfileKeys) == 0) {
 		s.clientProfileConfigInvalid.Store(false)
 	}
 	if oldCfg != nil && s.wsAuthChanged != nil && oldCfg.WebsocketAuth != cfg.WebsocketAuth {

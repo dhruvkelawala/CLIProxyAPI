@@ -214,3 +214,22 @@ func Binding(profiles []Profile, keys []Key, principal string) (Snapshot, error)
 	}
 	return Snapshot{}, nil
 }
+
+// ValidateRevocations validates persisted profile-key revocation and active-binding exclusion.
+func ValidateRevocations(keys []Key, revoked []string) error {
+	seen := make(map[string]bool)
+	for _, fingerprint := range revoked {
+		raw, err := hex.DecodeString(fingerprint)
+		if err != nil || len(raw) != 32 || hex.EncodeToString(raw) != fingerprint || seen[fingerprint] {
+			return Invalid("invalid_revoked_key", "access.revoked-client-profile-keys")
+		}
+		seen[fingerprint] = true
+	}
+	for _, key := range keys {
+		if seen[key.Fingerprint] {
+			return Invalid("revoked_key_bound", "access.client-profile-keys")
+		}
+	}
+
+	return nil
+}

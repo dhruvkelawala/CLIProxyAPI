@@ -429,3 +429,246 @@ func TestManagementClientProfileUnsupportedTargets(t *testing.T) {
 type profileUnsupportedStorage struct{}
 
 func (*profileUnsupportedStorage) SaveTokenToFile(string) error { return nil }
+
+type shipExclusiveFrontendProvider struct{}
+
+func (*shipExclusiveFrontendProvider) Identifier() string { return "ship-exclusive" }
+func (*shipExclusiveFrontendProvider) Authenticate(ctx context.Context, r *http.Request) (*sdkaccess.Result, *sdkaccess.AuthError) {
+	return &sdkaccess.Result{Provider: "ship-exclusive", Principal: "untrusted-plugin-principal", Metadata: map[string]string{clientprofiles.BindingMetadataKey: `{"bound":false}`}}, nil
+}
+func TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding(t *testing.T) {
+	f := newProfileAPI(t)
+	ref := f.enroll(t)
+	p := f.request(t, "POST", "/client-profiles", fmt.Sprintf(`{"label":"strict","policies":{"claude":{"mode":"only","account_ref":%q},"codex":{"mode":"automatic"}}}`, ref), 200)["result"].(map[string]any)
+	k := f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"strict","profile_ref":%q,"api_key":"synthetic-client-key"}`, p["profile_ref"]), 200)["result"].(map[string]any)
+	f.business(t, "synthetic-client-key", 503)
+	sdkaccess.RegisterProvider("ship-exclusive", &shipExclusiveFrontendProvider{})
+	sdkaccess.SetExclusiveProvider("ship-exclusive")
+	t.Cleanup(func() { sdkaccess.ClearExclusiveProvider(); sdkaccess.UnregisterProvider("ship-exclusive") })
+	f.server.accessManager.SetProviders(sdkaccess.RegisteredProviders())
+	check := func(want int) {
+		req := httptest.NewRequest("GET", "/synthetic-business", nil)
+		req.Header.Set("Authorization", "Bearer synthetic-client-key")
+		rec := httptest.NewRecorder()
+		f.server.engine.ServeHTTP(rec, req)
+		t.Logf("GET /synthetic-business exclusive frontend provider -> %d %s; required %d", rec.Code, rec.Body.String(), want)
+		if rec.Code != want {
+			t.Errorf("profile security contract bypass: got %d want %d", rec.Code, want)
+		}
+	}
+	check(503)
+	f.server.accessManager.SetProviders(nil)
+	check(503)
+	f.server.accessManager.SetProviders(sdkaccess.RegisteredProviders())
+	f.request(t, "DELETE", "/client-profile-keys/"+k["key_ref"].(string), "", 200)
+	check(401)
+}
+
+func TestManagementClientProfileExclusiveOwnerLifecycle(t *testing.T) {
+	f := newProfileAPI(t)
+	sdkaccess.RegisterProvider("ship-exclusive", &shipExclusiveFrontendProvider{})
+	sdkaccess.SetExclusiveProvider("ship-exclusive")
+	t.Cleanup(func() { sdkaccess.ClearExclusiveProvider(); sdkaccess.UnregisterProvider("ship-exclusive") })
+	f.server.accessManager.SetProviders(sdkaccess.RegisteredProviders())
+	p := f.request(t, "POST", "/client-profiles", `{"label":"automatic","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	k := f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"key","profile_ref":%q,"api_key":"synthetic-client-key"}`, p["profile_ref"]), 200)["result"].(map[string]any)
+	keyRef := k["key_ref"].(string)
+	f.business(t, "unrelated-plugin-user", 200)
+	f.request(t, "PUT", "/client-profile-keys/"+keyRef, `{"api_key":"synthetic-rotated-key"}`, 200)
+	f.business(t, "synthetic-client-key", 401)
+	f.business(t, "synthetic-rotated-key", 200)
+	loaded, err := config.LoadConfig(f.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(loaded.RevokedClientProfileKeys) != 1 {
+		t.Fatal("rotation revocation not persisted")
+	}
+	f.server.accessManager = sdkaccess.NewManager()
+	f.server.applyAccessConfig(nil, loaded)
+	f.server.engine.GET("/restart-business", AuthMiddleware(f.server.accessManager), func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
+	check := func(path, key string, headers map[string]string, want int) {
+		t.Helper()
+		r := httptest.NewRequest("GET", path, nil)
+		r.Header.Set("Authorization", "Bearer "+key)
+		for name, value := range headers {
+			r.Header.Set(name, value)
+		}
+		w := httptest.NewRecorder()
+		f.server.engine.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("%s status=%d want=%d body=%s", path, w.Code, want, w.Body.String())
+		}
+	}
+	check("/restart-business", "synthetic-client-key", nil, 401)
+	check("/restart-business", "unrelated-plugin-user", nil, 200)
+	check("/restart-business", "synthetic-rotated-key", map[string]string{"X-Api-Key": "unrelated-plugin-user"}, 401)
+	check("/restart-business", "unrelated-plugin-user", map[string]string{"X-Api-Key": "synthetic-rotated-key"}, 401)
+	check("/restart-business?key=synthetic-rotated-key", "unrelated-plugin-user", nil, 401)
+	f.server.accessManager.SetProviders(nil)
+	check("/restart-business", "synthetic-client-key", nil, 401)
+	check("/restart-business", "synthetic-rotated-key", nil, 200)
+	f.server.accessManager.SetProviders(sdkaccess.RegisteredProviders())
+	f.request(t, "PUT", "/client-profile-keys/"+keyRef, `{"api_key":"synthetic-client-key"}`, 200)
+	check("/restart-business", "synthetic-client-key", nil, 200)
+	check("/restart-business", "synthetic-rotated-key", nil, 401)
+	f.request(t, "PUT", "/client-profile-keys/"+keyRef, `{"api_key":"synthetic-client-key"}`, 409)
+	f.request(t, "DELETE", "/client-profile-keys/"+keyRef, "", 200)
+	f.request(t, "DELETE", "/client-profiles/"+p["profile_ref"].(string), "", 200)
+	loaded, err = config.LoadConfig(f.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.server.applyAccessConfig(nil, loaded)
+	check("/restart-business", "synthetic-client-key", nil, 401)
+	check("/restart-business", "synthetic-rotated-key", nil, 401)
+	check("/restart-business", "unrelated-plugin-user", nil, 200)
+	f.request(t, "PUT", "/config/access/api-keys", `["synthetic-legacy-key","synthetic-client-key"]`, 200)
+	f.request(t, "GET", "/client-profiles", "", 200)
+	loaded, err = config.LoadConfig(f.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.server.applyAccessConfig(nil, loaded)
+	check("/restart-business", "synthetic-client-key", nil, 401)
+	p = f.request(t, "POST", "/client-profiles", `{"label":"reuse","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"reuse","profile_ref":%q,"api_key":"synthetic-client-key"}`, p["profile_ref"]), 200)
+	check("/restart-business", "synthetic-client-key", nil, 200)
+}
+
+func TestManagementClientProfileRevocationSaveFailure(t *testing.T) {
+	f := newProfileAPI(t)
+	sdkaccess.RegisterProvider("ship-exclusive", &shipExclusiveFrontendProvider{})
+	sdkaccess.SetExclusiveProvider("ship-exclusive")
+	t.Cleanup(func() { sdkaccess.ClearExclusiveProvider(); sdkaccess.UnregisterProvider("ship-exclusive") })
+	p := f.request(t, "POST", "/client-profiles", `{"label":"automatic","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	k := f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"key","profile_ref":%q,"api_key":"synthetic-client-key"}`, p["profile_ref"]), 200)["result"].(map[string]any)
+	before, err := os.ReadFile(f.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest("PUT", "/v8/management/client-profile-keys/"+k["key_ref"].(string), &profileMutationReader{Reader: strings.NewReader(`{"api_key":"synthetic-rotated-key"}`), mutate: func() {
+		if err := os.Remove(f.path); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Mkdir(f.path, 0700); err != nil {
+			t.Fatal(err)
+		}
+	}})
+	req.RemoteAddr = "127.0.0.1:1234"
+	req.Header.Set("Authorization", "Bearer synthetic-management")
+	req.Header.Set("If-Match", f.etag)
+	w := httptest.NewRecorder()
+	f.server.engine.ServeHTTP(w, req)
+	if w.Code != 500 {
+		t.Fatalf("failed rotation status=%d body=%s", w.Code, w.Body.String())
+	}
+	if err := os.Remove(f.path); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(f.path, before, 0600); err != nil {
+		t.Fatal(err)
+	}
+	f.server.engine.GET("/binding-business", AuthMiddleware(f.server.accessManager), func(c *gin.Context) {
+		metadata := c.GetStringMapString("accessMetadata")
+		var binding clientprofiles.Snapshot
+		if err := json.Unmarshal([]byte(metadata[clientprofiles.BindingMetadataKey]), &binding); err != nil {
+			t.Fatal(err)
+		}
+		if !binding.Bound || binding.KeyRef != k["key_ref"] || c.GetString("userApiKey") != "synthetic-client-key" {
+			t.Fatal("plugin identity replaced configured ownership", binding)
+		}
+		c.JSON(200, gin.H{"bound": binding.Bound})
+	})
+	r := httptest.NewRequest("GET", "/binding-business", nil)
+	r.Header.Set("Authorization", "Bearer synthetic-client-key")
+	w = httptest.NewRecorder()
+	f.server.engine.ServeHTTP(w, r)
+	if w.Code != 200 {
+		t.Fatal(w.Code, w.Body.String())
+	}
+	f.request(t, "PUT", "/client-profile-keys/"+k["key_ref"].(string), `{"api_key":"synthetic-rotated-key"}`, 200)
+	r = httptest.NewRequest("GET", "/v8/management/config/access", nil)
+	r.RemoteAddr = "127.0.0.1:1234"
+	r.Header.Set("Authorization", "Bearer synthetic-management")
+	w = httptest.NewRecorder()
+	f.server.engine.ServeHTTP(w, r)
+	if w.Code != 200 || strings.Contains(w.Body.String(), "revoked-client-profile-keys") || strings.Contains(w.Body.String(), clientprofiles.Fingerprint("synthetic-client-key")) {
+		t.Fatal("revocation hashes leaked", w.Code, w.Body.String())
+	}
+	f.request(t, "PUT", "/config/access", w.Body.String(), 200)
+	loaded, err := config.LoadConfig(f.path)
+	if err != nil || len(loaded.RevokedClientProfileKeys) != 1 {
+		t.Fatal("redacted roundtrip lost revocation", err)
+	}
+	f.request(t, "PUT", "/config/access/revoked-client-profile-keys", `[]`, 400)
+	f.request(t, "DELETE", "/config/access/revoked-client-profile-keys", "", 400)
+	r = httptest.NewRequest("GET", "/v8/management/config", nil)
+	r.RemoteAddr = "127.0.0.1:1234"
+	r.Header.Set("Authorization", "Bearer synthetic-management")
+	w = httptest.NewRecorder()
+	f.server.engine.ServeHTTP(w, r)
+	if w.Code != 200 || strings.Contains(w.Body.String(), "revoked-client-profile-keys") {
+		t.Fatal("unsafe full projection", w.Code)
+	}
+	f.request(t, "PUT", "/config", w.Body.String(), 200)
+	loaded, err = config.LoadConfig(f.path)
+	if err != nil || len(loaded.RevokedClientProfileKeys) != 1 {
+		t.Fatal("full JSON roundtrip lost revocation", err)
+	}
+}
+
+func TestManagementClientProfileRevokedOnlyStartup(t *testing.T) {
+	t.Cleanup(func() {
+		sdkaccess.ClearExclusiveProvider()
+		sdkaccess.UnregisterProvider("ship-exclusive")
+		sdkaccess.UnregisterProvider(sdkaccess.AccessProviderTypeConfigAPIKey)
+	})
+	sdkaccess.RegisterProvider("ship-exclusive", &shipExclusiveFrontendProvider{})
+	sdkaccess.SetExclusiveProvider("ship-exclusive")
+	cfg, err := config.ParseConfigBytes([]byte("api-keys: [synthetic-legacy-key]\nws-auth: true\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.RevokedClientProfileKeys = []string{clientprofiles.Fingerprint("synthetic-deleted-key")}
+	cfg.CommercialMode = true
+	cfg.RemoteManagement.DisableControlPanel = true
+	cfg.AuthDir = t.TempDir()
+	s := NewServer(cfg, nil, nil, filepath.Join(cfg.AuthDir, "config.yaml"))
+	s.AttachWebsocketRoute("/revoked-ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }))
+	check := func(path, key string, want int) {
+		t.Helper()
+		r := httptest.NewRequest("GET", path, nil)
+		r.Header.Set("Authorization", "Bearer "+key)
+		w := httptest.NewRecorder()
+		s.engine.ServeHTTP(w, r)
+		if w.Code != want {
+			t.Fatalf("revoked-only startup %s=%d want=%d", path, w.Code, want)
+		}
+	}
+	check("/v1/models", "synthetic-deleted-key", 401)
+	check("/revoked-ws", "synthetic-deleted-key", 401)
+	check("/revoked-ws", "unrelated-plugin-user", 200)
+	invalid := cfg.CloneForRuntime()
+	invalid.WebsocketAuth = false
+	if s.UpdateClientsContext(context.Background(), invalid) {
+		t.Fatal("revoked-only websocket bypass config accepted")
+	}
+	check("/revoked-ws", "synthetic-deleted-key", 401)
+	opaque := &sdkaccess.Result{Principal: "unrelated-opaque-issuer", Provider: "ship-exclusive"}
+	r := httptest.NewRequest("GET", "/derived", nil)
+	r.Header.Set("Authorization", "Bearer "+opaque.Principal)
+	result, authErr := s.accessManager.BindAcceptedCredential(context.Background(), r, opaque)
+	if authErr != nil || result.Principal != opaque.Principal {
+		t.Fatal("opaque plugin issuer regressed", authErr)
+	}
+	r.Header.Set("Authorization", "Bearer synthetic-externally-removed-key")
+	native := &sdkaccess.Result{Provider: sdkaccess.DefaultAccessProviderName, Principal: "synthetic-externally-removed-key"}
+	if _, authErr = s.accessManager.BindAcceptedCredential(context.Background(), r, native); authErr == nil || authErr.HTTPStatusCode() != 401 {
+		t.Fatal("removed native issuer bypass", authErr)
+	}
+	r.Header.Set("Authorization", "Bearer synthetic-deleted-key")
+	if _, authErr = s.accessManager.BindAcceptedCredential(context.Background(), r, opaque); authErr == nil || authErr.HTTPStatusCode() != 401 {
+		t.Fatal("derived revoked identity bypass", authErr)
+	}
+}

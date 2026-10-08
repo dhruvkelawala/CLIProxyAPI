@@ -8,8 +8,9 @@ import (
 
 // Manager coordinates authentication providers.
 type Manager struct {
-	mu        sync.RWMutex
-	providers []Provider
+	mu              sync.RWMutex
+	providers       []Provider
+	credentialOwner CredentialOwner
 }
 
 // NewManager constructs an empty manager.
@@ -48,7 +49,7 @@ func (m *Manager) Authenticate(ctx context.Context, r *http.Request) (*Result, *
 	}
 	providers := m.Providers()
 	if len(providers) == 0 {
-		return nil, nil
+		return m.BindAcceptedCredential(ctx, r, nil)
 	}
 
 	var (
@@ -62,7 +63,7 @@ func (m *Manager) Authenticate(ctx context.Context, r *http.Request) (*Result, *
 		}
 		res, authErr := provider.Authenticate(ctx, r)
 		if authErr == nil {
-			return res, nil
+			return m.BindAcceptedCredential(ctx, r, res)
 		}
 		if IsAuthErrorCode(authErr, AuthErrorCodeNotHandled) {
 			continue
@@ -85,4 +86,34 @@ func (m *Manager) Authenticate(ctx context.Context, r *http.Request) (*Result, *
 		return nil, NewNoCredentialsError()
 	}
 	return nil, NewNoCredentialsError()
+}
+
+// CredentialOwner applies configured credential ownership after provider authentication.
+type CredentialOwner interface {
+	Bind(context.Context, *http.Request, *Result) (*Result, *AuthError)
+}
+
+// SetProvidersAndCredentialOwner publishes providers and their credential owner together.
+func (m *Manager) SetProvidersAndCredentialOwner(providers []Provider, owner CredentialOwner) {
+	if m == nil {
+		return
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.providers = append([]Provider(nil), providers...)
+	m.credentialOwner = owner
+}
+
+// BindAcceptedCredential validates configured ownership without rerunning frontend authentication.
+func (m *Manager) BindAcceptedCredential(ctx context.Context, r *http.Request, accepted *Result) (*Result, *AuthError) {
+	if m == nil {
+		return accepted, nil
+	}
+	m.mu.RLock()
+	owner := m.credentialOwner
+	m.mu.RUnlock()
+	if owner == nil {
+		return accepted, nil
+	}
+	return owner.Bind(ctx, r, accepted)
 }

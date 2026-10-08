@@ -176,7 +176,7 @@ func NewServer(cfg *config.Config, authManager *auth.Manager, accessManager *sdk
 	envAdminPassword = strings.TrimSpace(envAdminPassword)
 	envManagementSecret := envAdminPasswordSet && envAdminPassword != ""
 
-	if accessManager == nil && len(cfg.ClientProfileKeys) > 0 {
+	if accessManager == nil && (len(cfg.ClientProfileKeys) > 0 || len(cfg.RevokedClientProfileKeys) > 0) {
 		accessManager = sdkaccess.NewManager()
 	}
 
