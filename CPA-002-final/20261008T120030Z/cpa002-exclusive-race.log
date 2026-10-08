@@ -1,0 +1,10 @@
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles	1.114s
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/config	1.265s
+?   	github.com/router-for-me/CLIProxyAPI/v8/internal/access	[no test files]
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/access/config_access	1.278s
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/api	11.427s
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/api/handlers/management	1.270s [no tests to run]
+ok  	github.com/router-for-me/CLIProxyAPI/v8/internal/api/middleware	1.194s [no tests to run]
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/access	1.071s [no tests to run]
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth	1.280s
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/auth	1.231s
