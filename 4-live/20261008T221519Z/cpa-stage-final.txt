@@ -1,0 +1,17 @@
+{"stage_root": "/var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/cpa-stage-doashq9m", "release": "/private/tmp/cpa-release-final"}
+{"path": "/v1/messages", "stream": false, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"path": "/v1/messages", "stream": true, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"path": "/v1/messages/count_tokens", "stream": false, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"client": "b", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"client": "automatic", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"client": "legacy", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"panel_sha256": "9c974b4e7e1b31bb0dff6ab29de77e9235940c28faa65251ced53fc89f628a8e", "enforcement": true}
+{"path": "/v1/messages", "stream": false, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"path": "/v1/messages", "stream": true, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"path": "/v1/messages/count_tokens", "stream": false, "client": "Only A", "status": 503, "code": "target_unavailable", "upstream_attempts": 0}
+{"client": "b", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"client": "automatic", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"client": "legacy", "operation": "local token-count", "status": 200, "vendor_inference": false}
+{"panel_sha256": "9c974b4e7e1b31bb0dff6ab29de77e9235940c28faa65251ced53fc89f628a8e", "enforcement": true}
+{"rollback": "passed", "configuration_restored": true, "panel_restored": true}
+{"stage_root": "/var/folders/gx/hrgjtdbj6mg775bn0yy842yr0000gn/T/cpa-stage-doashq9m", "port": 64642, "pid": 71873, "backend_commit": "128e4039fc049bd984046d4715626e08f31330e3", "panel_commit": "33d16202ccc5662f2886ea83c5b86bdfaa793751"}

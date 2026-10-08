@@ -1,0 +1,58 @@
+{
+  "backend_commit": "128e4039fc049bd984046d4715626e08f31330e3",
+  "panel_commit": "33d16202ccc5662f2886ea83c5b86bdfaa793751",
+  "artifact_sha256": {
+    "cli-proxy-api": "30d53438eff5802eb8d74ca51c04bce8d438bcda0213cb9da942360245cdb642",
+    "management.html": "9c974b4e7e1b31bb0dff6ab29de77e9235940c28faa65251ced53fc89f628a8e",
+    "panel-LICENSE.txt": "48fc0d19e5d0918e7e2a7df2deed33b167d9aad1aebb07891a32a8e6f71f80ee",
+    "CLIProxyAPI_sumo-v8.0.15-20261008.1_darwin_aarch64.tar.gz": "6005b4b2116d051acfe29bbbd6da5a645fb256e329fa3e1880ac2ecec4a360ca"
+  },
+  "gateway": "one Mini localhost:8317",
+  "macbook_tunnel": "existing, preserved",
+  "profile_account_proof": [
+    {
+      "machine": "mini",
+      "profile": "a",
+      "requests_matched": 7
+    },
+    {
+      "machine": "mini",
+      "profile": "b",
+      "requests_matched": 2
+    },
+    {
+      "machine": "mini",
+      "profile": "automatic",
+      "requests_matched": 2
+    },
+    {
+      "machine": "macbook",
+      "profile": "a",
+      "requests_matched": 3
+    },
+    {
+      "machine": "macbook",
+      "profile": "b",
+      "requests_matched": 6
+    },
+    {
+      "machine": "macbook",
+      "profile": "automatic",
+      "requests_matched": 3
+    }
+  ],
+  "both_claude_accounts_enabled": true,
+  "native_cli_all_six_choices": "passed",
+  "continuation_both_macs": "passed",
+  "actual_inherited_helper_mini_a_and_macbook_b": "passed",
+  "stream_close_both_macs": "passed; cancellation propagation additionally proved by recording fixture",
+  "strict_unavailable_a_both_macs": "503 target_unavailable, B remains enabled and execution counters unchanged",
+  "disposable_tunnel_native_fail_closed": "passed",
+  "legacy_codex_keys_both_macs": "passed",
+  "t3_source_changes": false,
+  "cross_instance_continuation": "start a new thread",
+  "scope_exclusions": [
+    "native auxiliary generation",
+    "explicit delegates to another provider"
+  ]
+}

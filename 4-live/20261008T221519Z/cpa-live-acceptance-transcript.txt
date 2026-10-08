@@ -1,0 +1,37 @@
+{"machine": "mini", "profile": "a", "role": "main", "model": "claude-sonnet-4-5-20250929", "status": 200, "response_bytes": 538, "request_id": "cpa-proof-90316308-e8b3-4fc3-a686-97d8b8ac924d"}
+{"machine": "mini", "profile": "a", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537, "request_id": "cpa-proof-62ff8620-1a49-45ee-afc5-5e3093d2a0ab"}
+{"machine": "mini", "profile": "b", "role": "main", "model": "claude-sonnet-4-5-20250929", "status": 200, "response_bytes": 538, "request_id": "cpa-proof-71966c29-ed67-47ff-87d7-2dc9f66cc608"}
+{"machine": "mini", "profile": "b", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537, "request_id": "cpa-proof-24fe653b-c55f-4ef8-9ca7-f627d76f268e"}
+{"machine": "mini", "profile": "automatic", "role": "main", "model": "claude-sonnet-4-5-20250929", "status": 200, "response_bytes": 538, "request_id": "cpa-proof-024f52eb-e149-4d6b-b3e5-26d1c50d84e5"}
+{"machine": "mini", "profile": "automatic", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537, "request_id": "cpa-proof-491c1598-0d96-4d31-b9a5-d2671efbcb83"}
+{"machine": "macbook", "panel_status": 200, "panel_sha256": "9c974b4e7e1b31bb0dff6ab29de77e9235940c28faa65251ced53fc89f628a8e"}
+{"machine": "macbook", "profile": "a", "role": "main", "model": "claude-sonnet-4-6", "status": 200, "response_bytes": 529}
+{"machine": "macbook", "profile": "a", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537}
+{"machine": "macbook", "profile": "b", "role": "main", "model": "claude-sonnet-4-6", "status": 200, "response_bytes": 529}
+{"machine": "macbook", "profile": "b", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537}
+{"machine": "macbook", "profile": "automatic", "role": "main", "model": "claude-sonnet-4-6", "status": 200, "response_bytes": 529}
+{"machine": "macbook", "profile": "automatic", "role": "helper", "model": "claude-haiku-4-5-20251001", "status": 200, "response_bytes": 537}
+{"machine": "mini", "profile": "a", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1616, "stderr_bytes": 0, "session_match": true}
+{"machine": "mini", "profile": "b", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1602, "stderr_bytes": 0, "session_match": true}
+{"machine": "mini", "profile": "automatic", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1595, "stderr_bytes": 0, "session_match": true}
+{"machine": "macbook", "profile": "a", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1601, "stderr_bytes": 0, "session_match": true}
+{"machine": "macbook", "profile": "b", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1601, "stderr_bytes": 0, "session_match": true}
+{"machine": "macbook", "profile": "automatic", "continued": false, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1601, "stderr_bytes": 0, "session_match": true}
+{"machine": "mini", "profile": "a", "continued": true, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1623, "stderr_bytes": 0, "session_match": true}
+{"machine": "macbook", "profile": "a", "continued": true, "exit_code": 0, "result_type": "result", "is_error": false, "response_bytes": 1597, "stderr_bytes": 0, "session_match": true}
+{"machine": "mini", "profile": "a", "exit_code": 0, "is_error": false, "helper_tool_called": true, "tool_names": ["Agent", "SubagentHandback"], "child_event_seen": true, "response_bytes": 14940, "stderr_bytes": 0}
+{"machine": "macbook", "profile": "b", "exit_code": 0, "is_error": false, "helper_tool_called": true, "tool_names": ["Agent", "SubagentHandback"], "child_event_seen": true, "response_bytes": 13372, "stderr_bytes": 0}
+{"machine": "mini", "profile": "a", "status": 200, "stream_delta_seen": true, "client_stream_closed": true, "bytes_read": 726}
+{"machine": "macbook", "profile": "b", "status": 200, "stream_delta_seen": true, "client_stream_closed": true, "bytes_read": 740}
+{"machine": "mini", "profile": "a", "path": "/v1/messages", "stream": false, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"machine": "mini", "profile": "a", "path": "/v1/messages", "stream": true, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"machine": "mini", "profile": "a", "path": "/v1/messages/count_tokens", "stream": false, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"machine": "macbook", "profile": "a", "path": "/v1/messages", "stream": false, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"machine": "macbook", "profile": "a", "path": "/v1/messages", "stream": true, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"machine": "macbook", "profile": "a", "path": "/v1/messages/count_tokens", "stream": false, "status": 503, "code": "target_unavailable", "field": "claude"}
+{"strict_a_unavailable": "passed", "b_still_enabled": true, "b_execution_counters_unchanged": true}
+{"claude_accounts_enabled": 2, "account_a_restored": true}
+{"disposable_tunnel": "connected", "models_status": 200, "production_tunnel_changed": false}
+{"disposable_tunnel": "closed", "native_exit_code": 1, "native_connection_error": true, "failed_closed": true, "elapsed_seconds": 0.4, "production_tunnel_changed": false}
+{"machine": "mini", "legacy_codex_key": true, "model": "gpt-6.1-sol", "status": 200, "response_bytes": 2317}
+{"machine": "macbook", "legacy_codex_key": true, "model": "gpt-6.1-sol", "status": 200, "response_bytes": 2317}
