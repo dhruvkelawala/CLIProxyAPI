@@ -1,0 +1,35 @@
+--- FAIL: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication (0.00s)
+    --- FAIL: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TRUE (0.00s)
+        client_profiles_test.go:73: runtime-only enrollment advertised
+    --- FAIL: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_TRUE_ (0.00s)
+        client_profiles_test.go:73: runtime-only enrollment advertised
+    --- FAIL: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/TrUe (0.00s)
+        client_profiles_test.go:73: runtime-only enrollment advertised
+    --- FAIL: TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication/_true_ (0.00s)
+        client_profiles_test.go:73: runtime-only enrollment advertised
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth	0.307s
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+time="2026-10-08T12:29:25+01:00" level=info msg="management routes registered after secret key configuration"
+--- FAIL: TestManagementClientProfileUnsupportedTargets (0.37s)
+    --- FAIL: TestManagementClientProfileUnsupportedTargets/runtime_only_upper (0.05s)
+        server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"b5b5414985ea5fe9a3cf19d9d82a125f6ba7062f30b206f66ac1875e2573886a\"","target_states":{}}
+        server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":true,"state":"available","enrollment_supported":true,"target_supported":true}]}
+        server_client_profiles_test.go:418: unsupported imported credential advertised map[account_ref:aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa available:true credential_ref:credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae enrollment_supported:true label:claude credential provider:claude state:available target_supported:true]
+    --- FAIL: TestManagementClientProfileUnsupportedTargets/runtime_only_spaced (0.05s)
+        server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"ce5a09a05390ac2797d45c6b82b30ef20ae6dc5bc13557c73dc3ec9a9752c654\"","target_states":{}}
+        server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":true,"state":"available","enrollment_supported":true,"target_supported":true}]}
+        server_client_profiles_test.go:418: unsupported imported credential advertised map[account_ref:aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa available:true credential_ref:credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae enrollment_supported:true label:claude credential provider:claude state:available target_supported:true]
+    --- FAIL: TestManagementClientProfileUnsupportedTargets/runtime_only_mixed (0.05s)
+        server_client_profiles_test.go:391: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"9d3ae3497e5f011ea7c0b58329c4bf066774bca4486013caae32e946e2d91947\"","target_states":{}}
+        server_client_profiles_test.go:414: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true},{"credential_ref":"credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae","account_ref":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa","provider":"claude","label":"claude credential","available":true,"state":"available","enrollment_supported":true,"target_supported":true}]}
+        server_client_profiles_test.go:418: unsupported imported credential advertised map[account_ref:aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa available:true credential_ref:credential_60945d49535300be8e42108658dba31fcd5d665fc40d6f186798e7e0682320ae enrollment_supported:true label:claude credential provider:claude state:available target_supported:true]
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/internal/api	0.776s
+FAIL
