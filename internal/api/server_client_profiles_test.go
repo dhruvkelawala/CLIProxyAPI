@@ -503,6 +503,8 @@ func TestManagementClientProfileExclusiveOwnerLifecycle(t *testing.T) {
 	check("/restart-business", "synthetic-client-key", nil, 401)
 	check("/restart-business", "unrelated-plugin-user", nil, 200)
 	check("/restart-business", "synthetic-rotated-key", map[string]string{"X-Api-Key": "unrelated-plugin-user"}, 401)
+	check("/restart-business", "unrelated-plugin-user", map[string]string{"X-Api-Key": " synthetic-rotated-key "}, 401)
+	check("/restart-business?key=%20synthetic-rotated-key%20", "unrelated-plugin-user", nil, 401)
 	check("/restart-business", "unrelated-plugin-user", map[string]string{"X-Api-Key": "synthetic-rotated-key"}, 401)
 	check("/restart-business?key=synthetic-rotated-key", "unrelated-plugin-user", nil, 401)
 	f.server.accessManager.SetProviders(nil)

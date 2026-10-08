@@ -54,13 +54,13 @@ func (o *credentialOwner) Bind(ctx context.Context, r *http.Request, accepted *s
 		if o.revoked[fingerprint] {
 			return nil, sdkaccess.NewInvalidCredentialError()
 		}
-		_, configured := o.inventory.keys[raw]
-		if !configured {
-			continue
-		}
 		snapshot, err := clientprofiles.Binding(o.inventory.profiles, o.inventory.bindings, raw)
 		if err != nil {
 			return nil, &sdkaccess.AuthError{Code: "client_profile_invalid", Message: "Client profile is unavailable", StatusCode: 503}
+		}
+		_, configured := o.inventory.keys[raw]
+		if snapshot.Bound && !configured {
+			return nil, sdkaccess.NewInvalidCredentialError()
 		}
 		bindingRelevant = bindingRelevant || snapshot.Bound
 	}
