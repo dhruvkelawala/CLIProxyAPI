@@ -1,0 +1,8 @@
+--- FAIL: TestScopedClaudeExecutorsShareLazyAliasState (0.00s)
+    --- FAIL: TestScopedClaudeExecutorsShareLazyAliasState/claude (0.00s)
+        oauth_scope_alias_test.go:27: separate scoped executors lost lazy shared alias state
+    --- FAIL: TestScopedClaudeExecutorsShareLazyAliasState/kimi (0.00s)
+        oauth_scope_alias_test.go:27: separate scoped executors lost lazy shared alias state
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor	0.470s
+FAIL
