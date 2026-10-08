@@ -1,0 +1,22 @@
+=== RUN   TestClientProfileEnforcementCallerAffinity
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d70-a664-793f-a7a7-cad636781000
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a664-793f-a7a7-cad636781000
+    client_profile_affinity_test.go:63: POST /v1/responses client=Automatic session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-b provider=mixed model=gpt-fixture-main" request_id=01a11d70-a665-7af8-bc2c-e10ab946e5ea
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a665-7af8-bc2c-e10ab946e5ea
+    client_profile_affinity_test.go:63: POST /v1/responses client=Only B session=shared-conversation status=200 response={} upstream=[{fixture-b execute}]
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d70-a666-778d-b219-51be176843db
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a666-778d-b219-51be176843db
+    client_profile_affinity_test.go:63: POST /v1/responses client=Automatic continued session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d70-a666-7ce8-a26a-a2798382d2cf
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a666-7ce8-a26a-a2798382d2cf
+    client_profile_affinity_test.go:63: POST /v1/responses client=Legacy session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-b provider=mixed model=gpt-fixture-main" request_id=01a11d70-a667-755f-96c4-cfb7a555a7d4
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a667-755f-96c4-cfb7a555a7d4
+    client_profile_affinity_test.go:63: POST /v1/responses client=Only B continued session=shared-conversation status=200 response={} upstream=[{fixture-b execute}]
+time="2026-10-08T22:34:44+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d70-a667-7b75-8a4e-a87b04819c21
+time="2026-10-08T22:34:44+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d70-a667-7b75-8a4e-a87b04819c21
+    client_profile_affinity_test.go:63: POST /v1/responses client=Legacy continued session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+--- PASS: TestClientProfileEnforcementCallerAffinity (0.01s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.505s
