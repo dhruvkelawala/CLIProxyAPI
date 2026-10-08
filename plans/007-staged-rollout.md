@@ -1,6 +1,6 @@
 # CPA-007: Package pinned releases and configure both Macs through existing T3 instances
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Tracking issue:** https://github.com/dhruvkelawala/CLIProxyAPI/issues/5
 - **Issue:** https://github.com/dhruvkelawala/CLIProxyAPI/issues/4
 - **Priority:** P1
@@ -31,13 +31,13 @@ Backend release workflow builds Darwin arm64 assets; panel `.github/workflows/re
 7. Document how to update from upstream, compare non-secret settings and repeat the acceptance matrix.
 
 ## Verification and done criteria
-- [ ] Backend `go test ./...` and build pass; dashboard `bunx bun@1.3.14 run verify` passes.
-- [ ] `shasum -a 256 <backend-artifact> <management.html>` matches the release manifest.
-- [ ] Mini and MacBook recorded tests use the same gateway/version and appropriate distinct profiles.
-- [ ] A-only failure produces no B traffic, and B-only succeeds with A still enabled.
-- [ ] Rollback is rehearsed in staging, including the panel artifact and client configuration.
-- [ ] Evidence contains hashes, safe profile IDs and outcomes without credentials or prompt contents.
-- [ ] No T3 application rebuild/fork and no replacement of the existing tunnel.
+- [x] Backend `go test ./...` and build pass; dashboard `bunx bun@1.3.14 run verify` passes.
+- [x] `shasum -a 256 <backend-artifact> <management.html>` matches the release manifest.
+- [x] Mini and MacBook recorded tests use the same gateway/version and appropriate distinct profiles.
+- [x] A-only failure produces no B traffic, and B-only succeeds with A still enabled.
+- [x] Rollback is rehearsed in staging, including the panel artifact and client configuration.
+- [x] Evidence contains hashes, safe profile IDs and outcomes without credentials or prompt contents.
+- [x] No T3 application rebuild/fork and no replacement of the existing tunnel.
 
 ## Stop conditions and maintenance
 If wrapper credentials are shared despite different instance labels, stop and fix the isolated configuration before live rollout. If any production key/account change is outside authorization, finish the staging package/runbook first and leave that final operation pending. Do not add fabricated cost history or deploy a stale panel/backend contract. Record upstream rebase conflicts and repeat account-enforcement proof for each release.
@@ -55,4 +55,4 @@ Committed scope excludes T3 source, live credentials and host-specific configura
 
 ## Execution record
 
-Backend #9 and #10 are merged. Bun 1.3.14 and dashboard verification pass. The deployment tooling in [deployment/](../deployment/README.md) builds immutable fork artifacts, proves strict rejection without vendor traffic, rehearses restoration of the previous binary/panel/configuration and tests launcher credential precedence. Release publication and both-Mac live acceptance follow the reviewed tooling merge. The individual issue records final hashes and sanitized live outcomes.
+Backend #9 and #10 are merged. Bun 1.3.14 and dashboard verification pass. The deployment tooling in [deployment/](../deployment/README.md) builds immutable fork artifacts, proves strict rejection without vendor traffic, rehearses restoration of the previous binary/panel/configuration and tests launcher credential precedence. The reviewed tooling merged in [PR #15](https://github.com/dhruvkelawala/CLIProxyAPI/pull/15). Both pinned releases are published, the shared gateway is installed and both Macs passed live acceptance. [Release notes](../deployment/RELEASES.md) record hashes, supported behavior and sanitized proof.

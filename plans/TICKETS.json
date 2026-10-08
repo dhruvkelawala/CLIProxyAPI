@@ -97,7 +97,10 @@
       "CPA-006"
     ],
     "plan": "plans/007-staged-rollout.md",
-    "status": "IN_PROGRESS"
+    "status": "DONE",
+    "pullRequest": "https://github.com/dhruvkelawala/CLIProxyAPI/pull/15",
+    "mergeCommit": "128e4039fc049bd984046d4715626e08f31330e3",
+    "release": "https://github.com/dhruvkelawala/CLIProxyAPI/releases/tag/sumo-v8.0.15-20261008.1"
   },
   {
     "id": "CPA-008",
