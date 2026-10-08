@@ -1,0 +1,23 @@
+config-version: 8
+server:
+  host: 127.0.0.1
+  port: 8317
+management:
+  allow-remote: false
+  secret-key: REPLACE_WITH_PRIVATE_MANAGEMENT_KEY
+  disable-control-panel: false
+  disable-auto-update-panel: true
+  panel-github-repository: https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center
+access:
+  api-keys:
+    - REPLACE_WITH_PRIVATE_LEGACY_KEY
+  client-profiles: []
+  client-profile-keys: []
+oauth:
+  auth-dir: REPLACE_WITH_PRIVATE_AUTH_DIRECTORY
+  providers:
+    aistudio:
+      ws-auth: true
+routing:
+  strategy: fill-first
+  session-affinity: true

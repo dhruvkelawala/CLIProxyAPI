@@ -1,6 +1,6 @@
 # CPA-007: Package pinned releases and configure both Macs through existing T3 instances
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Tracking issue:** https://github.com/dhruvkelawala/CLIProxyAPI/issues/5
 - **Issue:** https://github.com/dhruvkelawala/CLIProxyAPI/issues/4
 - **Priority:** P1
@@ -18,7 +18,7 @@ Provide a reproducible staged release and rollback for the shared Mini gateway, 
 ## Context and current state
 Development branches are based on backend 8.0.15 and CPAMC 1.25.4. The live topology to preserve is Mini localhost:8317, with MacBook localhost:8317 forwarded through SSH/Cloudflare Access. Each machine has its own client identity. Native providers and auxiliary generation remain separate.
 
-`internal/config/config_types.go` supports `remote-management.panel-github-repository` and `disable-auto-update-panel`. The panel updater fetches a release asset named `management.html`. Turning periodic updates off alone does not prove a specific version was installed: pin/provision the artifact and verify its digest.
+The v8 configuration supports `management.panel-github-repository` and `management.disable-auto-update-panel`. The panel updater fetches a release asset named `management.html`. Turning periodic updates off alone does not prove a specific version was installed: pin/provision the artifact and verify its digest.
 Backend release workflow builds Darwin arm64 assets; panel `.github/workflows/release.yml` renames its single-file `dist/index.html` to `management.html`. Review workflows before enabling fork Actions or pushing release tags.
 
 ## Steps
@@ -51,4 +51,8 @@ Files/directories in scope:
 - `.github/workflows/release.yaml (only if fork release changes are required)`
 - `.github/workflows/pr-test-build.yml (only if fork CI changes are required)`
 
-Do not change T3 source, live gateway configuration or unrelated files. Match existing repository conventions. Open a PR against the fork's `sumo/main` when publishing authorized implementation work; do not target upstream `main` by accident.
+Committed scope excludes T3 source, live credentials and host-specific configuration. The user authorized the private gateway and both-Mac rollout on 2026-10-08 by asking to finish all listed items. Keep those operations in the private runbook outside Git. Match existing repository conventions. Open a PR against the fork's `sumo/main` when publishing authorized implementation work; do not target upstream `main` by accident.
+
+## Execution record
+
+Backend #9 and #10 are merged. Bun 1.3.14 and dashboard verification pass. The deployment tooling in [deployment/](../deployment/README.md) builds immutable fork artifacts, proves strict rejection without vendor traffic, rehearses restoration of the previous binary/panel/configuration and tests launcher credential precedence. Release publication and both-Mac live acceptance follow the reviewed tooling merge. The individual issue records final hashes and sanitized live outcomes.

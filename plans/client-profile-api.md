@@ -118,7 +118,7 @@ go test -count=1 -v -run 'TestClientProfile|TestManagementClientProfile' ./inter
 
 `TestManagementClientProfileContract` drives the actual authenticated v8 router using temporary configuration, file-backed synthetic credentials and the business authentication middleware. Its transcript contains safe response shapes, authenticated Only bindings, legacy independence, rotation, stale edits and revocation. Additional tests exercise failed saves without activation, missing activation ownership, external edits before reload, unsupported-provider duplicates, token-storage/file rollback and UUID survival across refresh/store/watcher rename/reload.
 
-CPA-007 is deferred. This contract does not authorize changing a running proxy, real credentials/configuration, T3, tunnels, services or releases.
+The user authorized CPA-007 rollout on 2026-10-08. Use the reviewed deployment tools, pinned artifacts, private backups and both-client acceptance matrix. This contract describes routing behavior; host-specific credentials and operations stay in the private runbook.
 
 
 ## Request coverage and errors
