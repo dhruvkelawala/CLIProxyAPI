@@ -616,6 +616,9 @@ func (m *Manager) refreshAuthForRequestAtEpoch(ctx context.Context, id, failedAc
 	if auth == nil || exec == nil {
 		return nil, errors.New("auth or executor not found")
 	}
+	if errProfile := m.validateProfileExecution(ctx, auth, exec, cliproxyexecutor.Options{}); errProfile != nil {
+		return nil, errProfile
+	}
 	if registrationEpoch != 0 && auth.RegistrationEpoch != registrationEpoch {
 		return nil, errors.New("auth registration changed before refresh")
 	}
@@ -635,6 +638,14 @@ func (m *Manager) refreshAuthForRequestAtEpoch(ctx context.Context, id, failedAc
 
 	base := auth.Clone()
 	updated, err := exec.Refresh(ctx, base.Clone())
+	if err == nil {
+		if errProfile := validateProfileReplacement(ctx, base, updated); errProfile != nil {
+			return nil, errProfile
+		}
+		if errProfile := m.validateProfileExecution(ctx, base, exec, cliproxyexecutor.Options{}); errProfile != nil {
+			return nil, errProfile
+		}
+	}
 	if err != nil && errors.Is(err, context.Canceled) {
 		log.Debugf("refresh canceled for %s, %s", auth.Provider, auth.ID)
 		return nil, err

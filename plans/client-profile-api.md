@@ -2,7 +2,7 @@
 
 CPA-002 implements contract version 1 on `/v8/management` only. Every route below uses the existing management authentication and availability middleware. Send the management Bearer credential over the authenticated management connection. No v0 profile routes exist. The dashboard is developed separately by Claude.
 
-Routing enforcement is **false** until CPA-003. Keys associated with any Only policy return HTTP 503 before business execution, including requests for a provider whose rule is Automatic. Legacy and all-Automatic keys retain existing routing. The dashboard must show the capability result and must not announce active account selection. CPA-003 will support independent provider routing; mixed-provider retry and failover semantics are still unsupported, as are strict Home and plugin-owned execution paths. A Claude-only rule must never escape via another account because the selected account failed. Pure Codex requests have an independent policy.
+CPA-003 enables subscription enforcement. Authenticated Only requests resolve a single enrolled credential from the complete current inventory. That credential serves the request, or the gateway returns an explicit error. Legacy keys and independent Automatic provider rules retain the eligible pool. Strict mixed-provider routes reject before execution so a Claude failure cannot escape through a Codex Automatic rule. Scope covers matching requests authenticated by this gateway. Native auxiliary generation, explicit delegation and traffic bypassing the gateway are outside it. The dashboard is owned separately and should use the advertised capabilities.
 
 ## Identities and persistence
 
@@ -17,7 +17,7 @@ File-backed enrollment supports plain metadata and native Claude/Codex token sto
 
 Refresh and request preparation preserve the current reserved UUID even if an executor omits or replaces it. Ordinary file/store reload and external file rename preserve metadata. A copied file with the same UUID is ambiguous, including disabled copies or a copy on an unsupported provider. No reference is regenerated. Removal leaves saved profiles unresolved; the operator must explicitly retarget them. Rename/reload does not promise uninterrupted availability during watcher reconciliation.
 
-Profile ownership runs independently after frontend authentication, including exclusive plugins and the empty-provider permissive path. It derives a bound identity only from a single distinct credential presented in the supported Authorization, X-Goog-Api-Key, X-Api-Key, `key`, or `auth_token` channels and independently validates it against a copied configuration inventory. Multiple distinct credentials involving a bound key are rejected with 401, including repeated header/query values. Plugin-supplied binding metadata is discarded; plugin claims cannot create or replace a binding. A plugin's unvalidated claim naming a protected/revoked credential is rejected. Unrelated unbound plugin identities keep existing authentication behavior. Custom opaque credential channels cannot establish profile ownership; integrations must present profile keys through the supported channels.
+Profile ownership runs independently after frontend authentication, including exclusive plugins and the empty-provider permissive path. It derives a bound identity only from a single distinct credential presented in the supported Authorization, X-Goog-Api-Key, X-Api-Key, `key`, or `auth_token` channels and independently validates it against a copied configuration inventory. Multiple distinct credentials involving a bound key are rejected with 401, including repeated header/query values. Plugin-supplied binding metadata is discarded; plugin claims cannot create or replace a binding. A plugin's unvalidated claim naming a protected/revoked credential is rejected. Unrelated unbound plugin identities keep existing authentication behavior. Custom opaque credential channels cannot establish profile ownership; integrations must present profile keys through the supported channels. A manager that has installed configured ownership fails closed if that owner is deliberately cleared. Restore a configured owner or initialize a new manager; removing ownership never downgrades protected keys to legacy.
 
 Rotation/deletion atomically persists revocation before activating it. Revoked credentials are rejected with 401 across reload and a new manager/process using the saved config, even after all profiles are deleted and even if a plugin would still accept them. Merely adding the raw key back to `api-keys` does not reactivate it. Explicit association to a profile (after adding the existing key) or rotation to that value clears its revocation. Rotation to the currently active key returns 409 `key_already_exists`. Revocations have no automatic expiry or pruning API; editing the trusted local YAML can remove them. Revoked-only configurations still require WebSocket authentication. Existing sessions remain subject to the CPA-003 limitation below.
 
@@ -25,7 +25,7 @@ Rotation/deletion atomically persists revocation before activating it. Revoked c
 
 `GET /client-profiles` and `GET /client-profile-keys` return `ETag`. Profile/key mutations require that exact value in `If-Match`. The `revision` JSON field contains the same quoted ETag string, for example `"\"sha256hex\""`. Missing preconditions return 428; stale preconditions return 412. Refresh the list and retry deliberately. If the persisted profile/key/key-value snapshot differs from the runtime snapshot, reads and mutations return 409 `reload_pending` until reload completes. An edit detected during save returns 412 and leaves runtime unchanged.
 
-Profile and key `revision` numbers start at 1 and increase on management edits. New requests obtain copied bindings containing both revisions and provider policies. Every edit, association change, rotation or deletion requires a fresh session/reconnection. CPA-003 must compare the original accepted association with current revisions/policies on each WebSocket turn and reject obsolete sessions, key deletion, changed ownership or a missing resolver. An immutable request snapshot must survive retries. CPA-002 does not claim to enforce revision checks for an already running all-Automatic session. Existing strict sessions cannot be started while enforcement is false.
+Profile and key `revision` numbers start at 1 and increase on management edits. Requests capture copied bindings with the accepted key fingerprint, key/profile revisions and policies. The snapshot stays unchanged through retries and refresh. Each Responses WebSocket turn compares the original association with the current owner. Key deletion, association changes, fingerprint rotation, profile edits and owner loss terminate old sessions, including all-Automatic sessions. An edit never widens or retargets an existing request. Reconnect authenticates anew. Connections authenticated before their key gained a profile have no captured binding and are not retrospectively constrained. Use dedicated keys and reconnect after association. Legacy realtime secrets whose opaque plugin issuer identity differs from their original raw credential cannot recover that credential; no profile guarantee is claimed for those earlier unbound sessions.
 
 Writes persist the validated configuration atomically before publishing access policy, and successful responses wait for immediate access activation. Missing activation ownership returns 503 before writing. A failed save publishes nothing. Sibling-file rename must be supported; a read-only directory or mounted-file replacement failure returns a persistence error. Generic v8 config mutations cannot alter profile-owned subtrees. JSON config views redact association fingerprints and restore omitted fingerprints when writing an unchanged projection back. Authenticated YAML backup retains the persisted fingerprint and existing legacy API-key secrets.
 
@@ -42,7 +42,7 @@ All successful operations return HTTP 200. All read/preview results exclude raw 
 | POST `/client-profiles` | `{label, policies}` | `{revision, result: Profile, session_behavior}` |
 | PUT `/client-profiles/:profile_ref` | Complete `{label, policies}` replacement | Same as create, revision increased |
 | DELETE `/client-profiles/:profile_ref` | None | `{revision, result:{deleted:profile_ref}, session_behavior}` |
-| POST `/client-profiles/preview` | `{profile_ref}` OR `{policies}` | `{revision, policies, target_states, enforcement:false, strict_requests:"rejected", session_behavior}` |
+| POST `/client-profiles/preview` | `{profile_ref}` OR `{policies}` | `{revision, policies, target_states, enforcement:true, strict_requests:"enforced", session_behavior}` |
 | GET `/client-profile-keys` | None | `{keys}` plus ETag |
 | POST `/client-profile-keys` | `{label, profile_ref, api_key}` with an existing legacy key value | `{revision, result: Key, session_behavior}` |
 | PUT `/client-profile-keys/:key_ref` | Optional `{api_key, label, profile_ref}`; omitted fields retained | Same as association, revision increased |
@@ -56,15 +56,15 @@ Mutations reject unrecognized request fields. Enrollment modifies the credential
 {
   "contract_version": 1,
   "management": true,
-  "enforcement": false,
-  "strict_requests": "rejected",
+  "enforcement": true,
+  "strict_requests": "enforced",
   "providers": ["claude", "codex"],
   "modes": ["automatic", "only"],
   "session_behavior": "fresh_session_required",
   "binding_requires": ["websocket_auth_enabled"],
   "enrollment_stores": ["file"],
   "enrollment_storage": ["metadata", "native_claude", "native_codex"],
-  "unsupported": ["home_strict", "mixed_provider_strict", "plugin_virtual_credentials", "unenrolled_credentials", "non_file_enrollment", "prefer", "fallback"]
+  "unsupported": ["home_strict", "mixed_provider_strict", "bound_duplex", "bound_realtime", "search_strict", "videos_strict", "direct_transport_strict", "bound_wsrelay", "unknown_provider_strict", "plugin_virtual_credentials", "unenrolled_credentials", "non_file_enrollment", "prefer", "fallback"]
 }
 ```
 
@@ -116,6 +116,31 @@ Domain errors have the shape `{"error":{"code":"machine_code","field":"optional_
 go test -count=1 -v -run 'TestClientProfile|TestManagementClientProfile' ./internal/clientprofiles ./internal/config ./internal/access/config_access ./internal/api/... ./sdk/cliproxy/auth ./sdk/auth
 ```
 
-`TestManagementClientProfileContract` drives the actual authenticated v8 router using temporary configuration, file-backed synthetic credentials and the business authentication middleware. Its transcript contains safe response shapes, Only rejection, legacy independence, rotation, stale edits and revocation. Additional tests exercise failed saves without activation, missing activation ownership, external edits before reload, unsupported-provider duplicates, token-storage/file rollback and UUID survival across refresh/store/watcher rename/reload.
+`TestManagementClientProfileContract` drives the actual authenticated v8 router using temporary configuration, file-backed synthetic credentials and the business authentication middleware. Its transcript contains safe response shapes, authenticated Only bindings, legacy independence, rotation, stale edits and revocation. Additional tests exercise failed saves without activation, missing activation ownership, external edits before reload, unsupported-provider duplicates, token-storage/file rollback and UUID survival across refresh/store/watcher rename/reload.
 
 CPA-007 is deferred. This contract does not authorize changing a running proxy, real credentials/configuration, T3, tunnels, services or releases.
+
+
+## Request coverage and errors
+
+| Request path | Supported behavior for a strict profile |
+|---|---|
+| Chat, completions, Claude messages, Responses and compact | Manager enforces the canonical provider's rule before selection and every upstream attempt |
+| Bare helper models and OAuth aliases | Same constraint applies after routing and alias resolution |
+| Count tokens | Same constraint applies when an executor performs the count |
+| Streaming and bootstrap retry | Snapshot and target survive bootstrap, retry and refresh |
+| Images generation and editing | Common manager execution applies the same constraint |
+| Responses HTTP aliases under `/backend-api/codex` | Same manager enforcement |
+| Responses WebSocket continuation and reconnect | Each turn validates the original binding; each reconnect authenticates afresh |
+| Scheduler plugins | Receive the constrained pool; a handled ID outside it fails closed |
+| Home, mixed provider routing and plugin-owned executors | Reject before dispatch or execution |
+| Native duplex/steering and realtime/live | Reject all profile-bound sessions, including Automatic, before creating a secret or relaying traffic |
+| Optional wsrelay routes | Reject all profile-bound requests before invoking the attached relay handler |
+| Standalone search, videos and direct manager HTTP/selection APIs | Reject strict requests before selection, acquisition or transport |
+| Providers without a Claude/Codex policy | Reject strict requests explicitly |
+
+Business policy failures return HTTP 503 with `{"error":{"code":"machine_code","field":"optional_field"}}`. WebSockets send the same error within an event with `type:"error"` and `status:503`, then terminate the session. Codes include `target_removed`, `target_unavailable`, `duplicate_account_ref`, `provider_mismatch`, `target_unsupported`, `profile_target_changed`, `profile_pin_conflict`, `client_profile_stale`, `profile_owner_unavailable`, `profile_home_unsupported`, `profile_mixed_provider_unsupported`, `profile_provider_unsupported`, `profile_protocol_unsupported`, `profile_plugin_unsupported` and `profile_scheduler_invalid`. Existing upstream, expired-token and model cooldown errors retain their normal envelopes. No policy failure substitutes another subscription.
+
+Final target and current-binding checks are read-only. They do not change model IDs or business payloads, and leave executor payload rules as the final semantic barrier before transport.
+
+The isolated evidence command is `go test -count=1 -v -run TestClientProfileEnforcement ./test ./internal/api/... ./sdk/api/handlers/... ./sdk/cliproxy/auth ./sdk/cliproxy/session`. The fixture uses actual server HTTP/WebSocket routes, synthetic credentials, temporary files and ephemeral loopback ports. A separate B canary proves the other account remains enabled.

@@ -1,11 +1,14 @@
 package api
 
 import (
+	"context"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	codexlive "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/live"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/home"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
@@ -166,6 +169,19 @@ func accessAuthMiddleware(manager *sdkaccess.Manager, realtimeError bool) gin.Ha
 		result, err := manager.Authenticate(c.Request.Context(), c.Request)
 		if err == nil {
 			if result != nil {
+				bindingCtx, errBinding := clientprofiles.Capture(c.Request.Context(), result.Metadata)
+				if errBinding != nil {
+					c.AbortWithStatusJSON(503, gin.H{"error": errBinding})
+					return
+				}
+				if clientprofiles.FromContext(bindingCtx).Bound && c.Request.URL.Path == "/v1/ws" {
+					c.AbortWithStatusJSON(503, gin.H{"error": clientprofiles.Invalid("profile_protocol_unsupported", "wsrelay")})
+					return
+				}
+				if denyProfileProtocol(c, bindingCtx) {
+					return
+				}
+				c.Request = c.Request.WithContext(bindingCtx)
 				c.Set("userApiKey", result.Principal)
 				c.Set("accessProvider", result.Provider)
 				if len(result.Metadata) > 0 {
@@ -193,6 +209,10 @@ func accessAuthMiddleware(manager *sdkaccess.Manager, realtimeError bool) gin.Ha
 				"param":   nil,
 				"code":    code,
 			}})
+			return
+		}
+		if strings.Contains(string(err.Code), "profile") {
+			c.AbortWithStatusJSON(statusCode, gin.H{"error": gin.H{"code": err.Code, "message": err.Message}})
 			return
 		}
 		c.AbortWithStatusJSON(statusCode, gin.H{"error": err.Message})
@@ -224,10 +244,44 @@ func realtimeAuthMiddleware(manager *sdkaccess.Manager, handler *codexlive.Handl
 		if provider == "" {
 			provider = "realtime-client-secret"
 		}
+		issuerRequest := c.Request.Clone(c.Request.Context())
+		issuerRequest.Header = http.Header{"Authorization": []string{"Bearer " + principal}}
+		issuerRequest.URL = &url.URL{Path: c.Request.URL.Path}
+		issuerResult, issuerErr := manager.BindAcceptedCredential(c.Request.Context(), issuerRequest, &sdkaccess.Result{Principal: principal, Provider: provider})
+		if issuerErr != nil {
+			c.AbortWithStatusJSON(issuerErr.HTTPStatusCode(), gin.H{"error": gin.H{"code": "realtime_issuer_invalid"}})
+			return
+		}
+		if issuerResult != nil {
+			bindingCtx, bindingErr := clientprofiles.Capture(c.Request.Context(), issuerResult.Metadata)
+			if bindingErr != nil {
+				c.AbortWithStatusJSON(503, gin.H{"error": bindingErr})
+				return
+			}
+			if denyProfileProtocol(c, bindingCtx) {
+				return
+			}
+			c.Request = c.Request.WithContext(bindingCtx)
+		}
 		c.Set("userApiKey", principal)
 		c.Set("accessProvider", provider)
 		c.Set(codexlive.ClientSecretSessionContextKey, authorization.Session)
 		c.Set(codexlive.ClientSecretPrincipalContextKey, authorization.Principal)
 		c.Next()
 	}
+}
+
+func denyProfileProtocol(c *gin.Context, ctx context.Context) bool {
+	snapshot := clientprofiles.FromContext(ctx)
+	if !snapshot.Bound {
+		return false
+	}
+	path := c.Request.URL.Path
+	boundRealtime := path == "/v1/realtime" || strings.HasPrefix(path, "/v1/realtime/") || path == "/v1/live" || strings.HasPrefix(path, "/v1/live/")
+	strictDirect := clientprofiles.Strict(ctx) && (path == "/v1/alpha/search" || path == "/backend-api/codex/alpha/search" || strings.Contains(path, "/videos"))
+	if boundRealtime || strictDirect {
+		c.AbortWithStatusJSON(503, gin.H{"error": clientprofiles.Invalid("profile_protocol_unsupported", "direct_transport")})
+		return true
+	}
+	return false
 }

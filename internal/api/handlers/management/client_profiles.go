@@ -40,40 +40,12 @@ func profileBody(c *gin.Context, dst any) bool {
 	return true
 }
 func (h *Handler) profileAccountsLocked() []clientprofiles.Account {
-	result := make([]clientprofiles.Account, 0)
 	if h.authManager == nil {
-		return result
+		return []clientprofiles.Account{}
 	}
-	for _, a := range h.authManager.List() {
-		if a == nil {
-			continue
-		}
-		ref, _ := a.Metadata[clientprofiles.AccountRefMetadataKey].(string)
-		available := !a.Disabled && !a.Unavailable && string(a.Status) != "disabled"
-		state := "available"
-		if ref == "" {
-			state = "not_enrolled"
-		}
-		if !available {
-			state = "unavailable"
-		}
-		label := a.Label
-		if strings.TrimSpace(label) == "" {
-			label = a.Provider + " credential"
-		}
-		result = append(result, clientprofiles.Account{CredentialRef: clientprofiles.CredentialRef(a.ID), AccountRef: ref, Provider: a.Provider, Label: label, Available: available, State: state, EnrollmentSupported: h.authManager.SupportsAccountEnrollment(a.ID), TargetSupported: h.authManager.SupportsAccountEnrollment(a.ID)})
-	}
-	for i := range result {
-		if result[i].AccountRef != "" {
-			state := clientprofiles.Resolve(result[i].Provider, clientprofiles.Policy{Mode: "only", AccountRef: result[i].AccountRef}, result)
-			if state != "available" {
-				result[i].State = state
-				result[i].Available = false
-			}
-		}
-	}
-	return result
+	return h.authManager.ClientProfileAccounts()
 }
+
 func (h *Handler) profileRevisionLocked(c *gin.Context, mutation bool) ([]byte, string, bool) {
 	raw, err := os.ReadFile(h.configFilePath)
 	if err != nil {
@@ -103,10 +75,10 @@ func (h *Handler) profileRevisionLocked(c *gin.Context, mutation bool) ([]byte, 
 	return raw, revision, true
 }
 
-// ClientProfileCapabilities describes the persisted contract, not active routing enforcement.
+// ClientProfileCapabilities describes supported subscription routing.
 func (h *Handler) ClientProfileCapabilities(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
-	c.JSON(200, gin.H{"contract_version": 1, "management": true, "enforcement": false, "strict_requests": "rejected", "providers": clientprofiles.Providers(), "modes": []string{"automatic", "only"}, "session_behavior": "fresh_session_required", "binding_requires": []string{"websocket_auth_enabled"}, "enrollment_stores": []string{"file"}, "enrollment_storage": []string{"metadata", "native_claude", "native_codex"}, "unsupported": []string{"home_strict", "mixed_provider_strict", "plugin_virtual_credentials", "unenrolled_credentials", "non_file_enrollment", "prefer", "fallback"}})
+	c.JSON(200, gin.H{"contract_version": 1, "management": true, "enforcement": true, "strict_requests": "enforced", "providers": clientprofiles.Providers(), "modes": []string{"automatic", "only"}, "session_behavior": "fresh_session_required", "binding_requires": []string{"websocket_auth_enabled"}, "enrollment_stores": []string{"file"}, "enrollment_storage": []string{"metadata", "native_claude", "native_codex"}, "unsupported": []string{"home_strict", "mixed_provider_strict", "bound_duplex", "bound_realtime", "search_strict", "videos_strict", "direct_transport_strict", "bound_wsrelay", "unknown_provider_strict", "plugin_virtual_credentials", "unenrolled_credentials", "non_file_enrollment", "prefer", "fallback"}})
 }
 func (h *Handler) ClientProfiles(c *gin.Context) {
 	h.mu.Lock()
@@ -234,7 +206,7 @@ func (h *Handler) ClientProfilePreview(c *gin.Context) {
 	for provider, policy := range p.Policies {
 		states[provider] = clientprofiles.Resolve(provider, policy, h.profileAccountsLocked())
 	}
-	c.JSON(200, gin.H{"revision": revision, "policies": p.Policies, "target_states": states, "enforcement": false, "strict_requests": "rejected", "session_behavior": "fresh_session_required"})
+	c.JSON(200, gin.H{"revision": revision, "policies": p.Policies, "target_states": states, "enforcement": true, "strict_requests": "enforced", "session_behavior": "fresh_session_required"})
 }
 func (h *Handler) ClientProfileAccounts(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")

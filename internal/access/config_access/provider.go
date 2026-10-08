@@ -99,11 +99,6 @@ func (p *provider) Authenticate(_ context.Context, r *http.Request) (*sdkaccess.
 			if err != nil {
 				return nil, &sdkaccess.AuthError{Code: "client_profile_invalid", Message: "Client profile is unavailable", StatusCode: http.StatusServiceUnavailable}
 			}
-			for _, policy := range snapshot.Policies {
-				if policy.Mode == "only" {
-					return nil, &sdkaccess.AuthError{Code: "profile_enforcement_unavailable", Message: "Client profile enforcement is not available", StatusCode: http.StatusServiceUnavailable}
-				}
-			}
 			metadata := map[string]string{"source": candidate.source}
 			if snapshot.Bound {
 				encoded, _ := json.Marshal(snapshot)

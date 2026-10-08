@@ -186,6 +186,7 @@ type Snapshot struct {
 	ProfileRef      string            `json:"profile_ref,omitempty"`
 	KeyRef          string            `json:"key_ref,omitempty"`
 	ProfileRevision uint64            `json:"profile_revision,omitempty"`
+	KeyFingerprint  string            `json:"key_fingerprint,omitempty"`
 	KeyRevision     uint64            `json:"key_revision,omitempty"`
 	Policies        map[string]Policy `json:"policies,omitempty"`
 }
@@ -195,7 +196,7 @@ func Binding(profiles []Profile, keys []Key, principal string) (Snapshot, error)
 	fingerprint := Fingerprint(principal)
 	for _, key := range keys {
 		if key.Fingerprint == fingerprint {
-			snapshot := Snapshot{Bound: true, KeyRef: key.Ref, KeyRevision: key.Revision, ProfileRef: key.ProfileRef}
+			snapshot := Snapshot{Bound: true, KeyRef: key.Ref, KeyFingerprint: fingerprint, KeyRevision: key.Revision, ProfileRef: key.ProfileRef}
 			for _, p := range profiles {
 				if p.Ref == key.ProfileRef {
 					snapshot.ProfileRevision = p.Revision

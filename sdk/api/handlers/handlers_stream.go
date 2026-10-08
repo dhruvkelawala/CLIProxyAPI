@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
 	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
@@ -29,6 +30,12 @@ func (h *BaseAPIHandler) ExecuteImageStreamWithAuthManager(ctx context.Context, 
 }
 
 func (h *BaseAPIHandler) streamWithPluginExecutor(ctx context.Context, entryProtocol, responseProtocol, modelName, originalRequestedModel string, rawJSON []byte, alt, executorPluginID string, execOptions modelExecutionOptions) (<-chan []byte, http.Header, <-chan *interfaces.ErrorMessage) {
+	if clientprofiles.Strict(ctx) {
+		errChan := make(chan *interfaces.ErrorMessage, 1)
+		errChan <- &interfaces.ErrorMessage{StatusCode: 503, Error: clientprofiles.Denied("profile_plugin_unsupported", "executor")}
+		close(errChan)
+		return nil, nil, errChan
+	}
 	if h.AuthManager != nil && h.AuthManager.HomeEnabled() {
 		errChan := make(chan *interfaces.ErrorMessage, 1)
 		errChan <- &interfaces.ErrorMessage{StatusCode: http.StatusServiceUnavailable, Error: fmt.Errorf("plugin executor routing is unavailable while Home is enabled")}

@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
@@ -495,6 +496,9 @@ func (h *BaseAPIHandler) GetContextWithCancel(handler interfaces.APIHandler, c *
 		} else if requestID = logging.GetGinRequestID(c); requestID != "" {
 			parentCtx = logging.WithRequestID(parentCtx, requestID)
 		}
+	}
+	if snapshot := clientprofiles.FromContext(requestCtx); snapshot.Bound {
+		parentCtx = clientprofiles.WithBinding(parentCtx, snapshot)
 	}
 	newCtx, cancel := context.WithCancel(parentCtx)
 

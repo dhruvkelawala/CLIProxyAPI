@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
 	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
@@ -123,6 +124,11 @@ func (m *Manager) Execute(ctx context.Context, providers []string, req cliproxye
 	ctx = cliproxyexecutor.WithRequestProxyURL(ctx, opts.ProxyURL)
 	req, opts = cliproxysession.Enrich(req, opts)
 	normalized := m.normalizeProviders(providers)
+	var errProfile error
+	ctx, opts, errProfile = m.constrainClientProfile(ctx, normalized, req.Model, opts)
+	if errProfile != nil {
+		return cliproxyexecutor.Response{}, unwrapRequestStopError(errProfile)
+	}
 	if len(normalized) == 0 {
 		return cliproxyexecutor.Response{}, &Error{Code: "provider_not_found", Message: "no provider supplied"}
 	}
@@ -183,6 +189,11 @@ func (m *Manager) ExecuteCount(ctx context.Context, providers []string, req clip
 	ctx = cliproxyexecutor.WithRequestProxyURL(ctx, opts.ProxyURL)
 	req, opts = cliproxysession.Enrich(req, opts)
 	normalized := m.normalizeProviders(providers)
+	var errProfile error
+	ctx, opts, errProfile = m.constrainClientProfile(ctx, normalized, req.Model, opts)
+	if errProfile != nil {
+		return cliproxyexecutor.Response{}, unwrapRequestStopError(errProfile)
+	}
 	if len(normalized) == 0 {
 		return cliproxyexecutor.Response{}, &Error{Code: "provider_not_found", Message: "no provider supplied"}
 	}
@@ -235,12 +246,17 @@ func (m *Manager) ExecuteCount(ctx context.Context, providers []string, req clip
 func (m *Manager) ExecuteStream(ctx context.Context, providers []string, req cliproxyexecutor.Request, opts cliproxyexecutor.Options) (*cliproxyexecutor.StreamResult, error) {
 	ctx = cliproxyexecutor.WithRequestProxyURL(ctx, opts.ProxyURL)
 	req, opts = cliproxysession.Enrich(req, opts)
+	normalized := m.normalizeProviders(providers)
+	var errProfile error
+	ctx, opts, errProfile = m.constrainClientProfile(ctx, normalized, req.Model, opts)
+	if errProfile != nil {
+		return nil, unwrapRequestStopError(errProfile)
+	}
 	if m.HomeEnabled() {
 		if unlockSession := m.lockHomeWebsocketSession(ctx, opts); unlockSession != nil {
 			defer unlockSession()
 		}
 	}
-	normalized := m.normalizeProviders(providers)
 	if len(normalized) == 0 {
 		return nil, &Error{Code: "provider_not_found", Message: "no provider supplied"}
 	}
@@ -592,6 +608,9 @@ func (m *Manager) executeMixedOnce(ctx context.Context, providers []string, req 
 			execReq = attachResolvedExecutionModelInfo(routing, execReq, auth, routeModel, upstreamModel, restoreExecutionModel)
 			execCtx = syncMetadataSessionToContext(execCtx, execOpts.Metadata)
 			startExec := time.Now()
+			if errProfile := m.validateProfileExecution(execCtx, auth, executor, execOpts); errProfile != nil {
+				return cliproxyexecutor.Response{}, errProfile
+			}
 			resp, errExec := executor.Execute(execCtx, auth, execReq, execOpts)
 			errExec = markUpstreamExecutionAttemptFromContext(execCtx, errExec)
 			durationExec := time.Since(startExec)
@@ -609,6 +628,9 @@ func (m *Manager) executeMixedOnce(ctx context.Context, providers []string, req 
 					execCtx = newUpstreamAttemptContext(execCtx)
 					execCtx = syncMetadataSessionToContext(execCtx, execOpts.Metadata)
 					startRetry := time.Now()
+					if errProfile := m.validateProfileExecution(execCtx, auth, executor, execOpts); errProfile != nil {
+						return cliproxyexecutor.Response{}, errProfile
+					}
 					resp, errExec = executor.Execute(execCtx, auth, execReq, execOpts)
 					errExec = markUpstreamExecutionAttemptFromContext(execCtx, errExec)
 					durationRetry := time.Since(startRetry)
@@ -804,6 +826,9 @@ func (m *Manager) executeCountMixedOnce(ctx context.Context, providers []string,
 			execReq = attachResolvedExecutionModelInfo(routing, execReq, auth, routeModel, upstreamModel, restoreExecutionModel)
 			execCtx = syncMetadataSessionToContext(execCtx, execOpts.Metadata)
 			startExec := time.Now()
+			if errProfile := m.validateProfileExecution(execCtx, auth, executor, execOpts); errProfile != nil {
+				return cliproxyexecutor.Response{}, errProfile
+			}
 			resp, errExec := executor.CountTokens(execCtx, auth, execReq, execOpts)
 			errExec = markUpstreamExecutionAttemptFromContext(execCtx, errExec)
 			durationExec := time.Since(startExec)
@@ -821,6 +846,9 @@ func (m *Manager) executeCountMixedOnce(ctx context.Context, providers []string,
 					execCtx = newUpstreamAttemptContext(execCtx)
 					execCtx = syncMetadataSessionToContext(execCtx, execOpts.Metadata)
 					startRetry := time.Now()
+					if errProfile := m.validateProfileExecution(execCtx, auth, executor, execOpts); errProfile != nil {
+						return cliproxyexecutor.Response{}, errProfile
+					}
 					resp, errExec = executor.CountTokens(execCtx, auth, execReq, execOpts)
 					errExec = markUpstreamExecutionAttemptFromContext(execCtx, errExec)
 					durationRetry := time.Since(startRetry)
@@ -1520,6 +1548,9 @@ func (m *Manager) prepareHomeAuthSnapshot(ctx context.Context, executor Provider
 }
 
 func (m *Manager) prepareRequestAuth(ctx context.Context, executor ProviderExecutor, auth *Auth) (*Auth, error) {
+	if errProfile := m.validateProfileExecution(ctx, auth, executor, cliproxyexecutor.Options{}); errProfile != nil {
+		return nil, errProfile
+	}
 	if m == nil || executor == nil || auth == nil {
 		return auth, nil
 	}
@@ -1579,6 +1610,9 @@ func (m *Manager) PrepareRequestAuth(ctx context.Context, preparer RequestAuthPr
 		return target, nil
 	}
 
+	if errProfile := validateProfileReplacement(ctx, base, updated); errProfile != nil {
+		return nil, errProfile
+	}
 	saved, errUpdate := m.UpdatePreparedAuth(ctx, base, updated)
 	if errUpdate != nil {
 		return nil, errUpdate
@@ -2002,6 +2036,9 @@ func (m *Manager) InjectCredentials(req *http.Request, authID string) error {
 
 // PrepareHttpRequest injects provider credentials into the supplied HTTP request.
 func (m *Manager) PrepareHttpRequest(ctx context.Context, auth *Auth, req *http.Request) error {
+	if clientprofiles.Strict(ctx) {
+		return profileExecutionError("profile_protocol_unsupported", "direct_transport")
+	}
 	if m == nil {
 		return &Error{Code: "provider_not_found", Message: "manager is nil"}
 	}
@@ -2031,6 +2068,9 @@ func (m *Manager) PrepareHttpRequest(ctx context.Context, auth *Auth, req *http.
 
 // NewHttpRequest constructs a new HTTP request and injects provider credentials into it.
 func (m *Manager) NewHttpRequest(ctx context.Context, auth *Auth, method, targetURL string, body []byte, headers http.Header) (*http.Request, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_transport")
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -2057,6 +2097,9 @@ func (m *Manager) NewHttpRequest(ctx context.Context, auth *Auth, method, target
 
 // HttpRequest injects provider credentials into the supplied HTTP request and executes it.
 func (m *Manager) HttpRequest(ctx context.Context, auth *Auth, req *http.Request) (*http.Response, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_transport")
+	}
 	if m == nil {
 		return nil, &Error{Code: "provider_not_found", Message: "manager is nil"}
 	}

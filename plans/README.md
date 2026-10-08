@@ -16,7 +16,7 @@ Use `sumo/main` as the base for a new ticket branch. The plan linked from each i
 |---|---|---|---|---|
 | [CPA-001](https://github.com/dhruvkelawala/CLIProxyAPI/issues/1) | Prove strict client account routing with an isolated recording fixture | Backend | Ready now | DONE ([PR #6](https://github.com/dhruvkelawala/CLIProxyAPI/pull/6)) |
 | [CPA-002](https://github.com/dhruvkelawala/CLIProxyAPI/issues/2) | Add durable client profiles and a v8 management contract | Backend | CPA-001 | Implemented, pending independent verification |
-| [CPA-003](https://github.com/dhruvkelawala/CLIProxyAPI/issues/3) | Enforce the selected subscription across retries, helpers, streams and WebSockets | Backend | CPA-001, CPA-002 | TODO |
+| [CPA-003](https://github.com/dhruvkelawala/CLIProxyAPI/issues/3) | Enforce the selected subscription across retries, helpers, streams and WebSockets | Backend | CPA-001, CPA-002 | Implemented; isolated verification and review |
 | [CPA-004](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/1) | Make account labels, enablement, availability and preference clear | Dashboard | Ready now | External dashboard work by Claude |
 | [CPA-005](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/2) | Let the dashboard choose and enforce a subscription for each client | Dashboard | CPA-002, CPA-003, CPA-004 | External dashboard work by Claude |
 | [CPA-006](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/3) | Make account and client-route controls accessible in both themes | Dashboard | CPA-004, CPA-005 | External dashboard work by Claude |
@@ -62,7 +62,7 @@ The proxy and custom panel are separate artifacts. The deployment to support lat
 
 ## Verified during setup
 
-See [BASELINE.md](BASELINE.md). Backend tests/build passed. Dashboard passed 1,493 tests, lint and TypeScript/production build. Source and workflows remain upstream-identical at this point; only plans and the illustrative concept were added. The proposed subscription enforcement is still TODO.
+See [BASELINE.md](BASELINE.md). Backend tests/build passed. Dashboard passed 1,493 tests, lint and TypeScript/production build. Source and workflows remain upstream-identical at this point; only plans and the illustrative concept were added. CPA-003 now implements subscription enforcement with isolated recording fixtures. See the [management and request contract](client-profile-api.md) for supported paths and explicit rejection modes.
 
 ## Approved load-balancing follow-up
 
