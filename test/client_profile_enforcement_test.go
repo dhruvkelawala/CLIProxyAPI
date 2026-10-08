@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -692,5 +693,81 @@ func TestClientProfileEnforcementStrictInjectCredentials(t *testing.T) {
 	}
 	if errLegacy := f.manager.InjectCredentials(legacyReq, "fixture-b"); errLegacy != nil || r.injected != "fixture-b" {
 		t.Fatalf("legacy injection changed: injected=%s err=%v", r.injected, errLegacy)
+	}
+}
+
+type replacementProfileRecorder struct {
+	*routingRecorder
+	manager      *auth.Manager
+	mode         string
+	preparations int
+}
+
+func (*replacementProfileRecorder) ShouldPrepareRequestAuth(*auth.Auth) bool { return true }
+func (r *replacementProfileRecorder) PrepareRequestAuth(_ context.Context, a *auth.Auth) (*auth.Auth, error) {
+	r.preparations++
+	switch r.mode {
+	case "account":
+		b, _ := r.manager.GetByID("fixture-b")
+		return b, nil
+	case "id":
+		a.ID = "fixture-b"
+	case "ref":
+		a.Metadata[clientprofiles.AccountRefMetadataKey] = "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb"
+	}
+	return a, nil
+}
+
+func TestClientProfileEnforcementPreparationDenial(t *testing.T) {
+	for _, kind := range []string{"execute", "count", "stream"} {
+		for _, mode := range []string{"account", "id", "ref", "owner-before-prepare", "removed-before-prepare"} {
+			t.Run(kind+"/"+mode, func(t *testing.T) {
+				f := newEnforcementFixture(t)
+				r := &replacementProfileRecorder{routingRecorder: f.recorder, manager: f.manager, mode: mode}
+				f.manager.RegisterExecutor(r)
+				available := true
+				ctx := clientprofiles.WithOwnerAvailability(f.ctx, func() bool { return available })
+				opts := executor.Options{}
+				expected := "profile_target_changed"
+				if mode == "owner-before-prepare" || mode == "removed-before-prepare" {
+					opts.Metadata = map[string]any{executor.SelectedAuthCallbackMetadataKey: func(id string) {
+						if mode == "owner-before-prepare" {
+							available = false
+						} else {
+							f.manager.Remove(auth.WithSkipPersist(context.Background()), id)
+						}
+					}}
+					expected = "profile_owner_unavailable"
+					if mode == "removed-before-prepare" {
+						expected = "target_removed"
+					}
+				}
+				err := f.call(ctx, kind, "fixture-alias", []string{"codex"}, opts)
+				var denied *clientprofiles.ExecutionError
+				if !errors.As(err, &denied) || denied.Code != expected || denied.StatusCode() != 503 {
+					t.Fatalf("expected typed %s denial, got %v", expected, err)
+				}
+				if calls := f.recorder.snapshot(); len(calls) != 0 {
+					t.Fatalf("denial executed upstream: %v", calls)
+				}
+				wantPreparations := 1
+				if strings.HasSuffix(mode, "before-prepare") {
+					wantPreparations = 0
+				}
+				if r.preparations != wantPreparations {
+					t.Fatalf("preparations=%d want=%d", r.preparations, wantPreparations)
+				}
+				for _, id := range []string{"fixture-a", "fixture-b"} {
+					a, exists := f.manager.GetByID(id)
+					if !exists {
+						continue
+					}
+					if a.LastError != nil || a.Failed != 0 || a.Unavailable || !a.NextRetryAfter.IsZero() || len(a.ModelStates) != 0 {
+						t.Fatalf("policy denial poisoned %s state: %+v", id, a)
+					}
+				}
+				t.Logf("%s/%s typed error=%v preparations=%d upstream=%v; credential state unchanged", kind, mode, err, r.preparations, f.recorder.snapshot())
+			})
+		}
 	}
 }
