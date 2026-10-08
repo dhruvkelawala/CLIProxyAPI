@@ -14,9 +14,9 @@ python3 deployment/package_release.py \
   --panel-tag sumo-v1.25.4-YYYYMMDD.N
 ```
 
-The package contains a Darwin arm64 gateway, the single-file `management.html`, an archive retaining upstream license/readmes/config example, SHA256SUMS and a manifest with both source commits. The builder uses committed model catalogs instead of fetching changing catalogs during compilation. Go uses `-trimpath` and embeds the exact backend commit. The panel embeds its fork version.
+The package contains a Darwin arm64 gateway, the single-file `management.html`, the panel's unchanged `panel-LICENSE.txt`, an archive retaining backend license/readmes/config example, SHA256SUMS and a manifest with both source commits. The builder uses committed model catalogs instead of fetching changing catalogs during compilation. Go uses `-trimpath` and embeds the exact backend commit. The panel embeds its fork version.
 
-Review the upstream release workflows before publishing. Backend tag pushes match every tag and run multi-platform builds that refresh catalogs. The panel workflow matches `v*`. This rollout publishes manually built assets with fork-specific `sumo-v*` tags and explicit source targets, without pushing tags or changing Actions/workflows. Never overwrite an existing upstream or fork release. Record the manifest alongside published assets and verify downloaded bytes before installation.
+Review the upstream release workflows before publishing. Backend tag pushes match every tag and run multi-platform builds that refresh catalogs. The panel workflow matches `v*`. This rollout publishes manually built assets with fork-specific `sumo-v*` tags and explicit source targets, without pushing tags or changing Actions/workflows. Include `panel-LICENSE.txt` wherever the panel is published. Never overwrite an existing upstream or fork release. Record the manifest alongside published assets and verify downloaded bytes before installation.
 
 ## Isolated proof and rollback
 

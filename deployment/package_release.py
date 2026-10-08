@@ -49,6 +49,8 @@ def main():
     run(['bunx', 'bun@1.3.14', 'run', 'build'], args.panel, dict(os.environ, VERSION=args.panel_tag))
     panel = output / 'management.html'
     shutil.copyfile(args.panel / 'dist/index.html', panel)
+    panel_license = output / 'panel-LICENSE.txt'
+    shutil.copyfile(args.panel / 'LICENSE', panel_license)
     archive = output / ('CLIProxyAPI_' + args.backend_tag + '_darwin_aarch64.tar.gz')
     with archive.open('wb') as raw, gzip.GzipFile(fileobj=raw, mode='wb', mtime=epoch, filename='') as zipped, tarfile.open(fileobj=zipped, mode='w') as tar:
         for source, name in [(binary, 'cli-proxy-api'), *[(args.backend / n, n) for n in ('LICENSE', 'README.md', 'README_CN.md', 'config.example.yaml')]]:
@@ -62,11 +64,11 @@ def main():
         'backend': {'repository': 'dhruvkelawala/CLIProxyAPI', 'commit': backend_commit, 'tag': args.backend_tag, 'upstream_base': 'v8.0.15'},
         'panel': {'repository': 'dhruvkelawala/Cli-Proxy-API-Management-Center', 'commit': panel_commit, 'tag': args.panel_tag, 'upstream_base': 'v1.25.4'},
         'builder': {'go': subprocess.check_output(['go', 'version'], text=True).strip(), 'bun': '1.3.14', 'cgo': True, 'model_catalog': 'committed source, no updater during build'},
-        'files': {p.name: {'sha256': digest(p), 'bytes': p.stat().st_size} for p in (binary, panel, archive)}
+        'files': {p.name: {'sha256': digest(p), 'bytes': p.stat().st_size} for p in (binary, panel, panel_license, archive)}
     }
     (output / 'release-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     with (output / 'SHA256SUMS').open('w') as sums:
-        for p in (binary, panel, archive, output / 'release-manifest.json'):
+        for p in (binary, panel, panel_license, archive, output / 'release-manifest.json'):
             sums.write(digest(p) + '  ' + p.name + '\n')
     print(json.dumps(manifest, indent=2))
 
