@@ -1,0 +1,18 @@
+=== RUN   TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding
+time="2026-10-08T12:43:14+01:00" level=info msg="management routes registered after secret key configuration"
+    server_client_profiles_test.go:493: GET /client-profiles -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}],"keys":null,"profiles":[],"revision":"\"ab8b65b7bb5adb67a3590824c2ca1c757e47415c28b017ce2a6147588726b877\"","target_states":{}}
+    server_client_profiles_test.go:101: GET /client-profile-accounts -> 200 {"accounts":[{"credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9","provider":"claude","label":"Synthetic account A","available":true,"state":"not_enrolled","enrollment_supported":true,"target_supported":true}]}
+    server_client_profiles_test.go:103: POST /client-profile-accounts/enroll -> 200 {"account_ref":"1c2cd1e0-5f73-4a3a-b919-5a49e91d22bc","credential_ref":"credential_21516b64db674acb5a2e2d4b81ab70a387df90863682bed05480433d37d307d9"}
+    server_client_profiles_test.go:495: POST /client-profiles -> 200 {"result":{"profile_ref":"179ed7dd-257e-467f-8853-b4e3b73da27e","label":"strict","revision":1,"policies":{"claude":{"mode":"only","account_ref":"1c2cd1e0-5f73-4a3a-b919-5a49e91d22bc"},"codex":{"mode":"automatic"}}},"revision":"\"561f0bf903d006377abee5f57ffa3a1606e39ee5d5f8ea311470756f5012728c\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:496: POST /client-profile-keys -> 200 {"result":{"key_ref":"050d87a8-70c0-4dfa-9d74-9379b950e64b","label":"strict","profile_ref":"179ed7dd-257e-467f-8853-b4e3b73da27e","revision":1},"revision":"\"ecfad5061bab01e2dc5ccb471cc750409001e1ce07ef8709e32d02e88225f193\"","session_behavior":"fresh_session_required"}
+time="2026-10-08T12:43:14+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+    server_client_profiles_test.go:497: GET /synthetic-business with synthetic credential -> 503 {"error":"Client profile enforcement is not available"}
+    server_client_profiles_test.go:504: GET /synthetic-business exclusive frontend provider -> 200 {"ok":true}; required 503
+    server_client_profiles_test.go:505: profile security contract bypass: got 200 want 503
+    server_client_profiles_test.go:508: DELETE /client-profile-keys/050d87a8-70c0-4dfa-9d74-9379b950e64b -> 200 {"result":{"deleted":"050d87a8-70c0-4dfa-9d74-9379b950e64b"},"revision":"\"dc64b68b37a299337c9d917ff7bb603733624474ab055b9479c1771fc92ae01c\"","session_behavior":"fresh_session_required"}
+    server_client_profiles_test.go:504: GET /synthetic-business exclusive frontend provider -> 200 {"ok":true}; required 401
+    server_client_profiles_test.go:505: profile security contract bypass: got 200 want 401
+--- FAIL: TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding (0.08s)
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/internal/api	0.406s
+FAIL
