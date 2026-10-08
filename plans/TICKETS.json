@@ -39,7 +39,7 @@
       "CPA-002"
     ],
     "plan": "plans/003-enforce-account-only.md",
-    "status": "IMPLEMENTED_PENDING_VERIFICATION"
+    "status": "DONE"
   },
   {
     "id": "CPA-004",
@@ -50,8 +50,7 @@
     "priority": "P1",
     "dependsOn": [],
     "plan": "plans/004-accounts-ui.md",
-    "status": "TODO",
-    "owner": "External dashboard work by Claude"
+    "status": "DONE"
   },
   {
     "id": "CPA-005",
@@ -66,8 +65,7 @@
       "CPA-004"
     ],
     "plan": "plans/005-client-routes-ui.md",
-    "status": "TODO",
-    "owner": "External dashboard work by Claude"
+    "status": "DONE"
   },
   {
     "id": "CPA-006",
@@ -81,8 +79,7 @@
       "CPA-005"
     ],
     "plan": "plans/006-account-accessibility.md",
-    "status": "TODO",
-    "owner": "External dashboard work by Claude"
+    "status": "DONE"
   },
   {
     "id": "CPA-007",
@@ -100,7 +97,7 @@
       "CPA-006"
     ],
     "plan": "plans/007-staged-rollout.md",
-    "status": "DEFERRED"
+    "status": "IN_PROGRESS"
   },
   {
     "id": "CPA-008",
@@ -115,7 +112,6 @@
       "CPA-006"
     ],
     "plan": "plans/008-shared-load-balancing.md",
-    "status": "TODO",
-    "owner": "External dashboard work by Claude"
+    "status": "DONE"
   }
 ]
