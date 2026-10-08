@@ -1,0 +1,18 @@
+=== RUN   TestClientProfileEnforcementClaudeErrorEnvelope
+time="2026-10-08T22:28:08+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d6a-9abe-772b-a672-717aea0a8352
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+time="2026-10-08T22:28:08+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages/count_tokens\"" request_id=01a11d6a-9abf-729f-acf3-6248d86cacd8
+    client_profile_claude_errors_test.go:51: POST /v1/messages/count_tokens stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+time="2026-10-08T22:28:08+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d6a-9abf-768b-b7c6-20a08d20b147
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=true -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+--- PASS: TestClientProfileEnforcementClaudeErrorEnvelope (0.01s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.295s
+=== RUN   TestClaudeClientProfileErrorPreservesContract
+=== RUN   TestClaudeClientProfileErrorPreservesContract/JSON
+=== RUN   TestClaudeClientProfileErrorPreservesContract/committed_SSE
+--- PASS: TestClaudeClientProfileErrorPreservesContract (0.00s)
+    --- PASS: TestClaudeClientProfileErrorPreservesContract/JSON (0.00s)
+    --- PASS: TestClaudeClientProfileErrorPreservesContract/committed_SSE (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers/claude	0.138s

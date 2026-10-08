@@ -1,0 +1,17 @@
+=== RUN   TestClientProfileEnforcementClaudeErrorEnvelope
+time="2026-10-08T22:28:10+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d6a-a5ed-7a87-8562-7fad74fb5477
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable"}} upstream_attempts=0
+    client_profile_claude_errors_test.go:60: error.code = "", want "target_unavailable"
+    client_profile_claude_errors_test.go:60: error.field = "", want "claude"
+time="2026-10-08T22:28:10+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages/count_tokens\"" request_id=01a11d6a-a5ee-7bdf-99d4-18f2e5ea1eae
+    client_profile_claude_errors_test.go:51: POST /v1/messages/count_tokens stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable"}} upstream_attempts=0
+    client_profile_claude_errors_test.go:60: error.field = "", want "claude"
+    client_profile_claude_errors_test.go:60: error.code = "", want "target_unavailable"
+time="2026-10-08T22:28:10+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d6a-a5ef-7042-9d1c-400fabe4a41e
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=true -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable"}} upstream_attempts=0
+    client_profile_claude_errors_test.go:60: error.code = "", want "target_unavailable"
+    client_profile_claude_errors_test.go:60: error.field = "", want "claude"
+--- FAIL: TestClientProfileEnforcementClaudeErrorEnvelope (0.01s)
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/test	0.545s
+FAIL
