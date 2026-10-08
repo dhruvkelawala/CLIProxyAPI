@@ -23,12 +23,12 @@ The service pins the provisioned panel directory, disables panel auto-update and
 
 ## Verification
 
-[Sanitized acceptance report](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-live/20261008T221519Z/cpa-live-acceptance.json?raw=true), [live transcript](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-live/20261008T221519Z/cpa-live-acceptance-transcript.txt?raw=true), [exact final artifact staging and rollback](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-live/20261008T221519Z/cpa-stage-final.txt?raw=true).
+[Sanitized acceptance report](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-final/20261008T221912Z/cpa-live-acceptance.json?raw=true), [live transcript](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-live/20261008T221519Z/cpa-live-acceptance-transcript.txt?raw=true), [exact final artifact staging and rollback](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-live/20261008T221519Z/cpa-stage-final.txt?raw=true).
 
 - Full backend tests, vet and build passed on `sumo/main`; dashboard verification passed with 1,755 tests, lint, TypeScript and production build. Bun 1.3.14 cache repair is complete.
 - Actual main/helper model calls and native Claude execution passed for all six client choices. Gateway usage records confirmed 23 successful serving-account matches across every machine/profile combination.
 - Actual inherited helper-agent calls passed on Mini A and MacBook B. Same-instance continuation passed on both Macs.
-- Live stream closure passed on both Macs. Existing handler tests cover cancellation propagation; the recording fixture proves retries and HTTP/WebSocket enforcement.
+- Live stream closure passed on both Macs. [Existing handler tests](https://github.com/dhruvkelawala/CLIProxyAPI/blob/evidence/4-final/20261008T221912Z/cpa-cancellation-proof.txt?raw=true) cover cancellation propagation; the recording fixture proves retries and HTTP/WebSocket enforcement.
 - With A temporarily disabled, both Macs returned 503 with `target_unavailable` on messages, streaming preflight and token count. B remained enabled and its execution counters did not change. A was restored immediately.
 - A disposable MacBook tunnel passed while connected; native Claude failed with a connection error after that tunnel closed. The production tunnel stayed unchanged.
 - Both legacy Codex client keys completed actual Responses requests. Both Macs served the pinned dashboard digest.
