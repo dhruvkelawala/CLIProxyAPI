@@ -1,0 +1,8 @@
+=== RUN   TestShipCommonHTTPProbe
+time="2026-10-08T13:31:39+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11b7f-7384-775e-ba60-a1e1c2b330bc
+    ship_common_probe_test.go:5: common HTTP bound=true status=200 body={} observations=[{fixture-a execute}]
+time="2026-10-08T13:31:39+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11b7f-7385-782d-84c6-e6350af375b1
+    ship_common_probe_test.go:5: common HTTP bound=false status=200 body={} observations=[{fixture-a execute} {fixture-b execute}]
+--- PASS: TestShipCommonHTTPProbe (0.01s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.366s

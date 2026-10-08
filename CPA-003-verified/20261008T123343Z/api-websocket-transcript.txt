@@ -1,0 +1,47 @@
+Exact SHA 59cdcae79256653b9b141ecc4033afaa8b551337
+    client_profile_enforcement_test.go:224: HTTP helper -> 200 {} observations=[{fixture-a execute}]
+    client_profile_enforcement_test.go:235: HTTP disabled A -> 503 {"error":{"code":"target_unavailable","field":"codex"}} observations=[{fixture-a execute}]
+    client_profile_enforcement_test.go:240: HTTP legacy -> 200 {} observations=[{fixture-a execute} {fixture-b execute}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+    client_profile_enforcement_test.go:352: ClaudeOnly stayed on A, independent CodexAutomatic used C: [{fixture-a execute} {fixture-a stream} {fixture-a count} {fixture-c execute}]
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime/client_secrets -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime/sessions -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /v1/live -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /v1/alpha/search -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /backend-api/codex/alpha/search -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /v1/videos -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:410: HTTP /openai/v1/videos -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+    client_profile_enforcement_test.go:526: HTTP images disabled=false -> 200 {} observations=[{fixture-a execute}]
+    client_profile_enforcement_test.go:526: HTTP images disabled=true -> 503 {"error":{"code":"target_unavailable","field":"codex"}} observations=[{fixture-a execute}]
+    client_profile_enforcement_test.go:664: turn after configured credential owner removed: {"type":"error","status":503,"error":{"code":"profile_owner_unavailable","field":"binding"}}; calls=[{fixture-a stream}]
+    client_profile_enforcement_test.go:664: turn after configured credential owner removed: {"type":"error","status":503,"error":{"code":"profile_owner_unavailable","field":"binding"}}; calls=[{fixture-a stream}]
+    client_profile_enforcement_test.go:769: execute/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: execute/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: execute/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: execute/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: execute/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: count/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: count/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: count/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: count/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: count/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: stream/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: stream/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: stream/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: stream/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+    client_profile_enforcement_test.go:769: stream/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+    server_client_profile_enforcement_test.go:87: realtime issuer associated -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}
+    server_client_profile_enforcement_test.go:87: realtime issuer rotated -> 401 {"error":{"code":"realtime_issuer_invalid"}}
+    server_client_profile_enforcement_test.go:87: realtime issuer deleted -> 401 {"error":{"code":"realtime_issuer_invalid"}}
+    server_client_profile_enforcement_test.go:87: realtime issuer opaque-legacy -> 426 {"error":{"code":"websocket_upgrade_required","message":"WebSocket upgrade required","param":null,"type":"invalid_request_error"}}
+    server_client_profile_enforcement_test.go:140: bound automatic relay -> 503 {"error":{"code":"profile_protocol_unsupported","field":"wsrelay"}}; attached-handler calls=0
+    server_client_profile_enforcement_test.go:140: bound only relay -> 503 {"error":{"code":"profile_protocol_unsupported","field":"wsrelay"}}; attached-handler calls=0

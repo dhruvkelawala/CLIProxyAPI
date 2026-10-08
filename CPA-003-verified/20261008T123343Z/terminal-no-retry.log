@@ -1,0 +1,31 @@
+=== RUN   TestShipTerminalNoRetry
+=== RUN   TestShipTerminalNoRetry/execute/return-B
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/execute/return-new-ID
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/execute/return-new-ref
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/count/return-B
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/count/return-new-ID
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/count/return-new-ref
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/stream/return-B
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/stream/return-new-ID
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+=== RUN   TestShipTerminalNoRetry/stream/return-new-ref
+    ship_adversarial_test.go:30: typed503=profile_target_changed retry-budget=3 preparations=1 upstream=[] both-account-health-unchanged
+--- PASS: TestShipTerminalNoRetry (0.01s)
+    --- PASS: TestShipTerminalNoRetry/execute/return-B (0.00s)
+    --- PASS: TestShipTerminalNoRetry/execute/return-new-ID (0.00s)
+    --- PASS: TestShipTerminalNoRetry/execute/return-new-ref (0.00s)
+    --- PASS: TestShipTerminalNoRetry/count/return-B (0.00s)
+    --- PASS: TestShipTerminalNoRetry/count/return-new-ID (0.00s)
+    --- PASS: TestShipTerminalNoRetry/count/return-new-ref (0.00s)
+    --- PASS: TestShipTerminalNoRetry/stream/return-B (0.00s)
+    --- PASS: TestShipTerminalNoRetry/stream/return-new-ID (0.00s)
+    --- PASS: TestShipTerminalNoRetry/stream/return-new-ref (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.382s

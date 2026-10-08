@@ -1,0 +1,9 @@
+=== RUN   TestShipCommonHTTPProbe
+time="2026-10-08T13:25:07+01:00" level=error msg="authentication middleware error: Client profile enforcement is not available"
+time="2026-10-08T13:25:07+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11b79-7792-77d0-a65c-66c56076b477
+    client_profile_fixture_test.go:395: common HTTP bound=true status=503 body={"error":"Client profile enforcement is not available"} observations=[]
+time="2026-10-08T13:25:07+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11b79-7793-708c-b859-10d0e983a3e9
+    client_profile_fixture_test.go:395: common HTTP bound=false status=200 body={} observations=[{fixture-a execute}]
+--- PASS: TestShipCommonHTTPProbe (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.403s
