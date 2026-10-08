@@ -1,0 +1,132 @@
+=== RUN   TestShipAdversarial
+=== RUN   TestShipAdversarial/execute/key-fingerprint
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/key-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/policy-without-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/selected-disabled
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_unavailable","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/selected-ref-changed
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_removed","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/return-B
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/return-new-ref
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/execute/return-new-ID
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/count/key-fingerprint
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/count/key-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/count/policy-without-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/count/selected-disabled
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_unavailable","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/count/selected-ref-changed
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_removed","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/count/return-B
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/count/return-new-ref
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/count/return-new-ID
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/key-fingerprint
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/key-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/policy-without-revision
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"client_profile_stale","field":"binding"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/selected-disabled
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_unavailable","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/selected-ref-changed
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"target_removed","field":"codex"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/return-B
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/return-new-ref
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+=== RUN   TestShipAdversarial/stream/return-new-ID
+    ship_adversarial_test.go:15: adversarial error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[]
+--- PASS: TestShipAdversarial (0.03s)
+    --- PASS: TestShipAdversarial/execute/key-fingerprint (0.00s)
+    --- PASS: TestShipAdversarial/execute/key-revision (0.00s)
+    --- PASS: TestShipAdversarial/execute/policy-without-revision (0.00s)
+    --- PASS: TestShipAdversarial/execute/selected-disabled (0.00s)
+    --- PASS: TestShipAdversarial/execute/selected-ref-changed (0.00s)
+    --- PASS: TestShipAdversarial/execute/return-B (0.00s)
+    --- PASS: TestShipAdversarial/execute/return-new-ref (0.00s)
+    --- PASS: TestShipAdversarial/execute/return-new-ID (0.00s)
+    --- PASS: TestShipAdversarial/count/key-fingerprint (0.00s)
+    --- PASS: TestShipAdversarial/count/key-revision (0.00s)
+    --- PASS: TestShipAdversarial/count/policy-without-revision (0.00s)
+    --- PASS: TestShipAdversarial/count/selected-disabled (0.00s)
+    --- PASS: TestShipAdversarial/count/selected-ref-changed (0.00s)
+    --- PASS: TestShipAdversarial/count/return-B (0.00s)
+    --- PASS: TestShipAdversarial/count/return-new-ref (0.00s)
+    --- PASS: TestShipAdversarial/count/return-new-ID (0.00s)
+    --- PASS: TestShipAdversarial/stream/key-fingerprint (0.00s)
+    --- PASS: TestShipAdversarial/stream/key-revision (0.00s)
+    --- PASS: TestShipAdversarial/stream/policy-without-revision (0.00s)
+    --- PASS: TestShipAdversarial/stream/selected-disabled (0.00s)
+    --- PASS: TestShipAdversarial/stream/selected-ref-changed (0.00s)
+    --- PASS: TestShipAdversarial/stream/return-B (0.00s)
+    --- PASS: TestShipAdversarial/stream/return-new-ref (0.00s)
+    --- PASS: TestShipAdversarial/stream/return-new-ID (0.00s)
+=== RUN   TestShipImmutableSnapshot
+time="2026-10-08T13:30:36+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    ship_adversarial_test.go:16: snapshot copy cannot widen retry events=[{fixture-a execute}]
+--- PASS: TestShipImmutableSnapshot (0.00s)
+=== RUN   TestShipOwnerLostBeforeAttempt
+    ship_adversarial_test.go:17: typed unavailable owner rejected all execution paths before effects
+--- PASS: TestShipOwnerLostBeforeAttempt (0.00s)
+=== RUN   TestShipPrePreparation
+=== RUN   TestShipPrePreparation/execute/owner
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"profile_owner_unavailable","field":"binding"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipPrePreparation/execute/target
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"target_removed","field":"codex"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipPrePreparation/count/owner
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"profile_owner_unavailable","field":"binding"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipPrePreparation/count/target
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"target_removed","field":"codex"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipPrePreparation/stream/owner
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"profile_owner_unavailable","field":"binding"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipPrePreparation/stream/target
+    ship_adversarial_test.go:25: pre-preparation err={"error":{"code":"target_removed","field":"codex"}} prepare=0 upstream=[] scheduler=1 health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+--- PASS: TestShipPrePreparation (0.01s)
+    --- PASS: TestShipPrePreparation/execute/owner (0.00s)
+    --- PASS: TestShipPrePreparation/execute/target (0.00s)
+    --- PASS: TestShipPrePreparation/count/owner (0.00s)
+    --- PASS: TestShipPrePreparation/count/target (0.00s)
+    --- PASS: TestShipPrePreparation/stream/owner (0.00s)
+    --- PASS: TestShipPrePreparation/stream/target (0.00s)
+=== RUN   TestShipReplacementHealth
+=== RUN   TestShipReplacementHealth/execute/return-B
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/execute/return-new-ref
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/execute/return-new-ID
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/count/return-B
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/count/return-new-ref
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/count/return-new-ID
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/stream/return-B
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/stream/return-new-ref
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+=== RUN   TestShipReplacementHealth/stream/return-new-ID
+    ship_adversarial_test.go:26: replacement err={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} upstream=[] health={"Status":"active","Message":"","Unavailable":false,"LastError":null,"Retry":"0001-01-01 00:00:00 +0000 UTC","Models":null,"Quota":{"exceeded":false,"next_recover_at":"0001-01-01T00:00:00Z","observed_at":"0001-01-01T00:00:00Z"}}
+--- PASS: TestShipReplacementHealth (0.01s)
+    --- PASS: TestShipReplacementHealth/execute/return-B (0.00s)
+    --- PASS: TestShipReplacementHealth/execute/return-new-ref (0.00s)
+    --- PASS: TestShipReplacementHealth/execute/return-new-ID (0.00s)
+    --- PASS: TestShipReplacementHealth/count/return-B (0.00s)
+    --- PASS: TestShipReplacementHealth/count/return-new-ref (0.00s)
+    --- PASS: TestShipReplacementHealth/count/return-new-ID (0.00s)
+    --- PASS: TestShipReplacementHealth/stream/return-B (0.00s)
+    --- PASS: TestShipReplacementHealth/stream/return-new-ref (0.00s)
+    --- PASS: TestShipReplacementHealth/stream/return-new-ID (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.358s
