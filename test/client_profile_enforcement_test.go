@@ -637,7 +637,11 @@ func testClientProfileEnforcementBoundWSOwnerLoss(t *testing.T, mode string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		if errClose := conn.Close(); errClose != nil {
+			t.Errorf("close synthetic websocket: %v", errClose)
+		}
+	}()
 	turn := func() string {
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"response.create","model":"gpt-fixture-main","input":[]}`)); err != nil {
 			t.Fatal(err)
