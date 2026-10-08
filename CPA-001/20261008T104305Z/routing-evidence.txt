@@ -1,0 +1,141 @@
+CPA-001 evidence at f6ec9bf3627557326ac1a60acf713db560d3fab1
+Command: go test -count=1 -v -run TestClientProfileFixture ./test ./sdk/cliproxy/auth ./sdk/api/handlers/...
+Synthetic account IDs and operation/status only. Real ephemeral loopback HTTP/WebSocket requests, no production access.
+
+    client_profile_fixture_test.go:186: observed [{fixture-a execute} {fixture-a execute} {fixture-b execute}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a execute} {fixture-a execute} {fixture-b execute}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a execute} {fixture-a execute} {fixture-b execute}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a stream} {fixture-a stream} {fixture-b stream}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a stream} {fixture-a stream} {fixture-b stream}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a stream} {fixture-a stream} {fixture-b stream}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a count} {fixture-a count} {fixture-b count}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a count} {fixture-a count} {fixture-b count}]; strict pin failed closed; B canary detected
+    client_profile_fixture_test.go:186: observed [{fixture-a count} {fixture-a count} {fixture-b count}]; strict pin failed closed; B canary detected
+--- PASS: TestClientProfileFixtureLibrary (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/execute/gpt-fixture-main (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/execute/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/execute/fixture-alias (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/stream/gpt-fixture-main (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/stream/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/stream/fixture-alias (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/count/gpt-fixture-main (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/count/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileFixtureLibrary/count/fixture-alias (0.00s)
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a execute} {fixture-a execute}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a execute} {fixture-a execute}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a execute} {fixture-a execute}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a execute} {fixture-b execute}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=3 observations=[{fixture-a execute} {fixture-a execute}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a stream} {fixture-a stream}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a stream} {fixture-a stream}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a stream} {fixture-a stream}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a stream} {fixture-b stream}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=3 observations=[{fixture-a stream} {fixture-a stream}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a count} {fixture-a count}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a count} {fixture-a count}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=0 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=strict plugin_calls=3 observations=[{fixture-a count} {fixture-a count}] error=unavailable: fixture unavailable
+    client_profile_fixture_test.go:215: mode=unhandled plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=unknown plugin_calls=2 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=missing plugin_calls=0 observations=[{fixture-a count} {fixture-b count}] error=<nil>
+    client_profile_fixture_test.go:215: mode=inactive plugin_calls=3 observations=[{fixture-a count} {fixture-a count}] error=unavailable: fixture unavailable
+--- PASS: TestClientProfileFixturePlugin (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-main/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-main/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-main/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-main/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-main/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-helper/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-helper/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-helper/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-helper/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/gpt-fixture-helper/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/fixture-alias/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/fixture-alias/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/fixture-alias/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/fixture-alias/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/execute/fixture-alias/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-main/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-main/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-main/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-main/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-main/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-helper/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-helper/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-helper/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-helper/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/gpt-fixture-helper/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/fixture-alias/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/fixture-alias/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/fixture-alias/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/fixture-alias/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/stream/fixture-alias/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-main/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-main/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-main/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-main/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-main/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-helper/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-helper/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-helper/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-helper/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/gpt-fixture-helper/inactive (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/fixture-alias/strict (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/fixture-alias/unhandled (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/fixture-alias/unknown (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/fixture-alias/missing (0.00s)
+    --- PASS: TestClientProfileFixturePlugin/count/fixture-alias/inactive (0.00s)
+    client_profile_fixture_test.go:246: WS synthetic response.create reply_type=response.completed error=<nil> observations=[{fixture-a stream}]
+    client_profile_fixture_test.go:246: WS synthetic response.create reply_type= error=websocket: close 1012: upstream requires HTTP replay observations=[{fixture-a stream} {fixture-a stream}]
+    client_profile_fixture_test.go:246: WS synthetic response.create reply_type=response.completed error=<nil> observations=[{fixture-a stream} {fixture-a stream} {fixture-b stream}]
+    client_profile_fixture_test.go:284: observed [{fixture-a stream} {fixture-a stream} {fixture-b stream}]; session pin survives continuation but reconnect leaks to B without profile enforcement
+--- PASS: TestClientProfileFixtureWebsocketReplay (0.00s)
+    client_profile_fixture_test.go:312: Home plugin_calls=0 observations=[{fixture-b execute}]; strict plugin bypass observed
+    client_profile_fixture_test.go:312: Home plugin_calls=0 observations=[{fixture-b stream}]; strict plugin bypass observed
+    client_profile_fixture_test.go:312: Home plugin_calls=0 observations=[{fixture-b count}]; strict plugin bypass observed
+--- PASS: TestClientProfileFixtureHomeBypass (0.00s)
+    --- PASS: TestClientProfileFixtureHomeBypass/execute (0.00s)
+    --- PASS: TestClientProfileFixtureHomeBypass/stream (0.00s)
+    --- PASS: TestClientProfileFixtureHomeBypass/count (0.00s)
+    client_profile_fixture_test.go:325: canary rejected deliberately wrong account B
+--- PASS: TestClientProfileFixtureCanary (0.00s)
+    client_profile_fixture_test.go:355: bootstrap failure observations=[{fixture-a stream}]; B separately succeeds
+--- PASS: TestClientProfileFixtureBootstrapRetry (0.00s)
+    client_profile_fixture_test.go:382: POST /v1/responses synthetic helper request unavailable=false HTTP=200 observations=[{fixture-a execute}]
+    client_profile_fixture_test.go:382: POST /v1/responses synthetic helper request unavailable=true HTTP=503 observations=[{fixture-a execute} {fixture-a execute}]
+--- PASS: TestClientProfileFixtureHTTP (0.00s)
+PASS
+PASS
+    handlers_metadata_test.go:379: executor received authenticated caller hash and internal pin; spoofed scope header did not replace caller identity
+--- PASS: TestClientProfileFixtureCallerAndPinMetadata (0.00s)
+PASS
+PASS
+PASS
+PASS

@@ -1,0 +1,6 @@
+=== RUN   TestClientProfileFixtureCanary
+    client_profile_fixture_test.go:144: account fixture-b served execute, wanted fixture-a
+--- FAIL: TestClientProfileFixtureCanary (0.00s)
+FAIL
+FAIL	github.com/router-for-me/CLIProxyAPI/v8/test	0.360s
+FAIL
