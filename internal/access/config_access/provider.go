@@ -2,9 +2,11 @@ package configaccess
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	sdkaccess "github.com/router-for-me/CLIProxyAPI/v8/sdk/access"
 	sdkconfig "github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
 )
@@ -22,15 +24,26 @@ func Register(cfg *sdkconfig.SDKConfig) {
 		return
 	}
 
+	p := newProvider(sdkaccess.DefaultAccessProviderName, keys)
+	p.profiles = append([]clientprofiles.Profile(nil), cfg.ClientProfiles...)
+	for i := range p.profiles {
+		p.profiles[i].Policies = make(map[string]clientprofiles.Policy)
+		for provider, policy := range cfg.ClientProfiles[i].Policies {
+			p.profiles[i].Policies[provider] = policy
+		}
+	}
+	p.bindings = append([]clientprofiles.Key(nil), cfg.ClientProfileKeys...)
 	sdkaccess.RegisterProvider(
 		sdkaccess.AccessProviderTypeConfigAPIKey,
-		newProvider(sdkaccess.DefaultAccessProviderName, keys),
+		p,
 	)
 }
 
 type provider struct {
-	name string
-	keys map[string]struct{}
+	name     string
+	keys     map[string]struct{}
+	profiles []clientprofiles.Profile
+	bindings []clientprofiles.Key
 }
 
 func newProvider(name string, keys []string) *provider {
@@ -90,12 +103,24 @@ func (p *provider) Authenticate(_ context.Context, r *http.Request) (*sdkaccess.
 			continue
 		}
 		if _, ok := p.keys[candidate.value]; ok {
+			snapshot, err := clientprofiles.Binding(p.profiles, p.bindings, candidate.value)
+			if err != nil {
+				return nil, &sdkaccess.AuthError{Code: "client_profile_invalid", Message: "Client profile is unavailable", StatusCode: http.StatusServiceUnavailable}
+			}
+			for _, policy := range snapshot.Policies {
+				if policy.Mode == "only" {
+					return nil, &sdkaccess.AuthError{Code: "profile_enforcement_unavailable", Message: "Client profile enforcement is not available", StatusCode: http.StatusServiceUnavailable}
+				}
+			}
+			metadata := map[string]string{"source": candidate.source}
+			if snapshot.Bound {
+				encoded, _ := json.Marshal(snapshot)
+				metadata[clientprofiles.BindingMetadataKey] = string(encoded)
+			}
 			return &sdkaccess.Result{
 				Provider:  p.Identifier(),
 				Principal: candidate.value,
-				Metadata: map[string]string{
-					"source": candidate.source,
-				},
+				Metadata:  metadata,
 			}, nil
 		}
 	}

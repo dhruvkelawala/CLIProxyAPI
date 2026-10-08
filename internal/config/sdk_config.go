@@ -4,6 +4,8 @@
 // debug settings, proxy configuration, and API keys.
 package config
 
+import "github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
+
 // SDKConfig represents the application's configuration, loaded from a YAML file.
 type SDKConfig struct {
 	// Client configures client-facing compatibility behavior.
@@ -60,7 +62,9 @@ type SDKConfig struct {
 	ClaudeCode ClaudeCodeConfig `yaml:"claude-code" json:"claude-code"`
 
 	// APIKeys is a list of keys for authenticating clients to this proxy server.
-	APIKeys []string `yaml:"api-keys" json:"api-keys"`
+	APIKeys           []string                 `yaml:"api-keys" json:"api-keys"`
+	ClientProfiles    []clientprofiles.Profile `yaml:"client-profiles,omitempty" json:"client-profiles,omitempty"`
+	ClientProfileKeys []clientprofiles.Key     `yaml:"client-profile-keys,omitempty" json:"client-profile-keys,omitempty"`
 
 	// PassthroughHeaders controls whether upstream response headers are forwarded to downstream clients.
 	// Default is false (disabled).

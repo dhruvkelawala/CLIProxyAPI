@@ -53,6 +53,11 @@ func (h *Handler) ConfigV8(c *gin.Context) {
 				}
 			}
 			h.injectV8APIKeyAuthIndexesLocked(root, data)
+			if keys := configV8Node(root, []string{"access", "client-profile-keys"}); keys != nil && keys.Kind == yaml.SequenceNode {
+				for _, key := range keys.Content {
+					deleteConfigV8Path(key, []string{"fingerprint"})
+				}
+			}
 		}
 		value := configV8Node(root, parts)
 		if value == nil {
@@ -153,6 +158,24 @@ func (h *Handler) ConfigV8(c *gin.Context) {
 			_ = next.Decode(&b)
 		}
 		if !reflect.DeepEqual(a, b) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "read_only_field", "field": field})
+			return
+		}
+	}
+	if !yamlRequest && c.Request.Method != http.MethodDelete {
+		preserveV8ProfileFingerprints(root, before)
+	}
+	for _, field := range []string{"access.client-profiles", "access.client-profile-keys"} {
+		parts := strings.Split(field, ".")
+		a, b := configV8Node(before, parts), configV8Node(root, parts)
+		var oldValue, newValue any
+		if a != nil {
+			_ = a.Decode(&oldValue)
+		}
+		if b != nil {
+			_ = b.Decode(&newValue)
+		}
+		if !reflect.DeepEqual(oldValue, newValue) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "read_only_field", "field": field})
 			return
 		}
@@ -306,6 +329,28 @@ func mergeConfigV8Patch(dst, src *yaml.Node) {
 			mergeConfigV8Patch(old, value)
 		} else {
 			dst.Content = append(dst.Content, key, value)
+		}
+	}
+}
+
+func preserveV8ProfileFingerprints(root, before *yaml.Node) {
+	next := configV8Node(root, []string{"access", "client-profile-keys"})
+	old := configV8Node(before, []string{"access", "client-profile-keys"})
+	if next == nil || old == nil || next.Kind != yaml.SequenceNode || old.Kind != yaml.SequenceNode {
+		return
+	}
+	for _, key := range next.Content {
+		ref := configV8Node(key, []string{"key_ref"})
+		if ref == nil || configV8Node(key, []string{"fingerprint"}) != nil {
+			continue
+		}
+		for _, previous := range old.Content {
+			oldRef := configV8Node(previous, []string{"key_ref"})
+			fingerprint := configV8Node(previous, []string{"fingerprint"})
+			if oldRef != nil && oldRef.Value == ref.Value && fingerprint != nil {
+				key.Content = append(key.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "fingerprint"}, cloneConfigV8Node(fingerprint))
+				break
+			}
 		}
 	}
 }

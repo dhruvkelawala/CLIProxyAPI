@@ -76,10 +76,11 @@ type Server struct {
 	currentPath string
 
 	// wsRoutes tracks registered websocket upgrade paths.
-	wsRouteMu     sync.Mutex
-	wsRoutes      map[string]struct{}
-	wsAuthChanged func(bool, bool)
-	wsAuthEnabled atomic.Bool
+	wsRouteMu                  sync.Mutex
+	wsRoutes                   map[string]struct{}
+	wsAuthChanged              func(bool, bool)
+	wsAuthEnabled              atomic.Bool
+	clientProfileConfigInvalid atomic.Bool
 
 	// management handler
 	mgmt *managementHandlers.Handler
@@ -175,6 +176,10 @@ func NewServer(cfg *config.Config, authManager *auth.Manager, accessManager *sdk
 	envAdminPassword = strings.TrimSpace(envAdminPassword)
 	envManagementSecret := envAdminPasswordSet && envAdminPassword != ""
 
+	if accessManager == nil && len(cfg.ClientProfileKeys) > 0 {
+		accessManager = sdkaccess.NewManager()
+	}
+
 	// Create server instance
 	s := &Server{
 		engine:              engine,
@@ -192,6 +197,10 @@ func NewServer(cfg *config.Config, authManager *auth.Manager, accessManager *sdk
 		exampleAPIKeySafeModeEnabled: optionState.exampleAPIKeySafeMode,
 	}
 	s.wsAuthEnabled.Store(cfg.WebsocketAuth)
+	if errProfiles := cfg.ValidateClientProfiles(); errProfiles != nil {
+		s.clientProfileConfigInvalid.Store(true)
+		log.WithError(errProfiles).Error("invalid client profile configuration; business requests rejected")
+	}
 	s.exampleAPIKeySafeModeActive.Store(s.exampleAPIKeySafeModeRequired(cfg))
 	s.handlers.SetPluginHost(optionState.pluginHost)
 	if optionState.pluginHost != nil {
@@ -212,6 +221,9 @@ func NewServer(cfg *config.Config, authManager *auth.Manager, accessManager *sdk
 	s.mgmt = managementHandlers.NewHandler(cfg, configFilePath, authManager)
 	s.mgmt.SetPluginHost(optionState.pluginHost)
 	s.mgmt.SetConfigReloadHook(optionState.configReloadHook)
+	if s.accessManager != nil {
+		s.mgmt.SetClientProfilePublisher(func(next *config.Config) { s.applyAccessConfig(nil, next) })
+	}
 	if optionState.localPassword != "" {
 		s.mgmt.SetLocalPassword(optionState.localPassword)
 	}
@@ -229,6 +241,13 @@ func NewServer(cfg *config.Config, authManager *auth.Manager, accessManager *sdk
 	// subscribe-config heartbeat connection is healthy.
 	engine.Use(s.homeHeartbeatMiddleware())
 	engine.Use(s.exampleAPIKeySafeModeMiddleware())
+	engine.Use(func(c *gin.Context) {
+		if s.clientProfileConfigInvalid.Load() && !strings.HasPrefix(c.Request.URL.Path, "/v8/management/") && c.Request.URL.Path != "/management.html" {
+			c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"code": "invalid_client_profile_config"}})
+			return
+		}
+		c.Next()
+	})
 
 	// Setup routes
 	s.setupRoutes()

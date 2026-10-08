@@ -73,6 +73,7 @@ func buildV8Paths() []configPath {
 		{"host", "server.host"}, {"port", "server.port"}, {"trusted-proxies", "server.trusted-proxies"},
 		{"tls", "server.tls"}, {"commercial-mode", "server.commercial-mode"}, {"discovery", "server.discovery"},
 		{"remote-management", "management"}, {"api-keys", "access.api-keys"},
+		{"client-profiles", "access.client-profiles"}, {"client-profile-keys", "access.client-profile-keys"},
 		{"credential-concurrency", "credentials.concurrency"}, {"credential-in-flight", "credentials.in-flight"},
 		{"force-model-prefix", "routing.force-model-prefix"},
 		{"request-retry", "routing.retry.request-retry"}, {"max-retry-credentials", "routing.retry.max-retry-credentials"},
@@ -251,6 +252,9 @@ func (cfg *Config) UnmarshalYAML(node *yaml.Node) error {
 	}
 	if errValidate := decoded.Models.Validate(); errValidate != nil {
 		return errValidate
+	}
+	if err := (*Config)(&decoded).ValidateClientProfiles(); err != nil {
+		return err
 	}
 	*cfg = Config(decoded)
 	cfg.OAuthOnlyFields = nil
@@ -910,8 +914,12 @@ func ValidateV8Config(data []byte) error {
 	decoder := yaml.NewDecoder(bytes.NewReader(encoded))
 	decoder.KnownFields(true)
 	var cfg legacyConfig
+	cfg.WebsocketAuth = true
 	if errDecode := decoder.Decode(&cfg); errDecode != nil {
 		return errDecode
+	}
+	if err := (*Config)(&cfg).ValidateClientProfiles(); err != nil {
+		return err
 	}
 	return cfg.Models.Validate()
 }
