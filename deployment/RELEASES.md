@@ -28,10 +28,10 @@ The service pins the provisioned panel directory, disables panel auto-update and
 - Full backend tests, vet and build passed on `sumo/main`; dashboard verification passed with 1,755 tests, lint, TypeScript and production build. Bun 1.3.14 cache repair is complete.
 - Actual main/helper model calls and native Claude execution passed for all six client choices. Gateway usage records confirmed 23 successful serving-account matches across every machine/profile combination.
 - Actual inherited helper-agent calls passed on Mini A and MacBook B. Same-instance continuation passed on both Macs.
-- Live stream closure passed on both Macs. The recording fixture additionally proved cancellation propagation, retries and HTTP/WebSocket enforcement.
+- Live stream closure passed on both Macs. Existing handler tests cover cancellation propagation; the recording fixture proves retries and HTTP/WebSocket enforcement.
 - With A temporarily disabled, both Macs returned 503 with `target_unavailable` on messages, streaming preflight and token count. B remained enabled and its execution counters did not change. A was restored immediately.
 - A disposable MacBook tunnel passed while connected; native Claude failed with a connection error after that tunnel closed. The production tunnel stayed unchanged.
 - Both legacy Codex client keys completed actual Responses requests. Both Macs served the pinned dashboard digest.
 - Previous binary/panel/configuration restoration passed in isolated staging. No staging gateway or usage collector remains running.
 
-Backend fixes [#9](https://github.com/dhruvkelawala/CLIProxyAPI/pull/11), [#10](https://github.com/dhruvkelawala/CLIProxyAPI/pull/12) and [the mutex verification cleanup](https://github.com/dhruvkelawala/CLIProxyAPI/pull/14) are included in this release.
+Backend issue #9, fixed by [PR #11](https://github.com/dhruvkelawala/CLIProxyAPI/pull/11), issue #10, fixed by [PR #12](https://github.com/dhruvkelawala/CLIProxyAPI/pull/12) and [the mutex verification cleanup](https://github.com/dhruvkelawala/CLIProxyAPI/pull/14) are included in this release.
