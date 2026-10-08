@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_termination_during_startup_stops_gateway (test_stage_release.StagingLifecycleTests.test_termination_during_startup_stops_gateway)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/sumodeus/code/CLIProxyAPI.sumo-worktrees/feat__4-pinned-mac-rollout/deployment/test_stage_release.py", line 40, in test_termination_during_startup_stops_gateway
+    self.assertEqual(process.returncode, 0, stderr.decode())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: -15 != 0 : 
+
+----------------------------------------------------------------------
+Ran 1 test in 0.313s
+
+FAILED (failures=1)

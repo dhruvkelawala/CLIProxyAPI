@@ -1,0 +1,438 @@
+=== RUN   TestClientProfileEnforcementCallerAffinity
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc49-7ca6-a3d9-73aecfd2c796
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc49-7ca6-a3d9-73aecfd2c796
+    client_profile_affinity_test.go:63: POST /v1/responses client=Automatic session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-b provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc4a-7ea9-aed5-37b34d230628
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc4a-7ea9-aed5-37b34d230628
+    client_profile_affinity_test.go:63: POST /v1/responses client=Only B session=shared-conversation status=200 response={} upstream=[{fixture-b execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc4b-7b1b-beb1-ea52652b68e0
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc4b-7b1b-beb1-ea52652b68e0
+    client_profile_affinity_test.go:63: POST /v1/responses client=Automatic continued session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache miss, new binding | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc4c-723a-888e-248f3a585c19
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc4c-723a-888e-248f3a585c19
+    client_profile_affinity_test.go:63: POST /v1/responses client=Legacy session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-b provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc4c-78aa-aafd-d91be4275470
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc4c-78aa-aafd-d91be4275470
+    client_profile_affinity_test.go:63: POST /v1/responses client=Only B continued session=shared-conversation status=200 response={} upstream=[{fixture-b execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="session-affinity: cache hit | session=user:sha... auth=fixture-a provider=mixed model=gpt-fixture-main" request_id=01a11d86-bc4d-70b7-9c14-a71dfd0d05b1
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bc4d-70b7-9c14-a71dfd0d05b1
+    client_profile_affinity_test.go:63: POST /v1/responses client=Legacy continued session=shared-conversation status=200 response={} upstream=[{fixture-a execute}]
+--- PASS: TestClientProfileEnforcementCallerAffinity (0.01s)
+=== RUN   TestClientProfileEnforcementClaudeErrorEnvelope
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d86-bc51-7562-a2c9-4414e5a3d00e
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages/count_tokens\"" request_id=01a11d86-bc51-7c8e-b1d6-71350d6c782b
+    client_profile_claude_errors_test.go:51: POST /v1/messages/count_tokens stream=false -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/messages\"" request_id=01a11d86-bc52-72b7-a602-6846fffd1200
+    client_profile_claude_errors_test.go:51: POST /v1/messages stream=true -> 503 {"type":"error","error":{"type":"api_error","message":"target_unavailable","code":"target_unavailable","field":"claude"}} upstream_attempts=0
+--- PASS: TestClientProfileEnforcementClaudeErrorEnvelope (0.00s)
+=== RUN   TestClientProfileEnforcementRequests
+=== RUN   TestClientProfileEnforcementRequests/execute/gpt-fixture-main
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict execute gpt-fixture-main A only; enabled B canary=[{fixture-a execute} {fixture-a execute} {fixture-b execute}]
+=== RUN   TestClientProfileEnforcementRequests/execute/gpt-fixture-helper
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-helper auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict execute gpt-fixture-helper A only; enabled B canary=[{fixture-a execute} {fixture-a execute} {fixture-b execute}]
+=== RUN   TestClientProfileEnforcementRequests/execute/fixture-alias
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict execute fixture-alias A only; enabled B canary=[{fixture-a execute} {fixture-a execute} {fixture-b execute}]
+=== RUN   TestClientProfileEnforcementRequests/stream/gpt-fixture-main
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict stream gpt-fixture-main A only; enabled B canary=[{fixture-a stream} {fixture-a stream} {fixture-b stream}]
+=== RUN   TestClientProfileEnforcementRequests/stream/gpt-fixture-helper
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-helper auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict stream gpt-fixture-helper A only; enabled B canary=[{fixture-a stream} {fixture-a stream} {fixture-b stream}]
+=== RUN   TestClientProfileEnforcementRequests/stream/fixture-alias
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict stream fixture-alias A only; enabled B canary=[{fixture-a stream} {fixture-a stream} {fixture-b stream}]
+=== RUN   TestClientProfileEnforcementRequests/count/gpt-fixture-main
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict count gpt-fixture-main A only; enabled B canary=[{fixture-a count} {fixture-a count} {fixture-b count}]
+=== RUN   TestClientProfileEnforcementRequests/count/gpt-fixture-helper
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-helper auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict count gpt-fixture-helper A only; enabled B canary=[{fixture-a count} {fixture-a count} {fixture-b count}]
+=== RUN   TestClientProfileEnforcementRequests/count/fixture-alias
+time="2026-10-08T22:58:51+01:00" level=warning msg="503 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:107: strict count fixture-alias A only; enabled B canary=[{fixture-a count} {fixture-a count} {fixture-b count}]
+--- PASS: TestClientProfileEnforcementRequests (0.03s)
+    --- PASS: TestClientProfileEnforcementRequests/execute/gpt-fixture-main (0.01s)
+    --- PASS: TestClientProfileEnforcementRequests/execute/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/execute/fixture-alias (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/stream/gpt-fixture-main (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/stream/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/stream/fixture-alias (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/count/gpt-fixture-main (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/count/gpt-fixture-helper (0.00s)
+    --- PASS: TestClientProfileEnforcementRequests/count/fixture-alias (0.00s)
+=== RUN   TestClientProfileEnforcementFailures
+=== RUN   TestClientProfileEnforcementFailures/disabled/execute
+    client_profile_enforcement_test.go:184: disabled/execute error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/disabled/stream
+    client_profile_enforcement_test.go:184: disabled/stream error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/disabled/count
+    client_profile_enforcement_test.go:184: disabled/count error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/cooldown/execute
+time="2026-10-08T22:58:51+01:00" level=warning msg="auth unavailable: 1 of 1 candidate(s) for model \"gpt-fixture-main\" (provider=codex) are in cooldown: [auth_file=fixture-a.json, reason=cooldown, remaining=1h0m0s]"
+    client_profile_enforcement_test.go:184: cooldown/execute error={"error":{"code":"model_cooldown","message":"All credentials for model gpt-fixture-main are cooling down via provider codex","model":"gpt-fixture-main","provider":"codex","reset_seconds":3600,"reset_time":"1h0m0s"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/cooldown/stream
+time="2026-10-08T22:58:51+01:00" level=warning msg="auth unavailable: 1 of 1 candidate(s) for model \"gpt-fixture-main\" (provider=codex) are in cooldown: [auth_file=fixture-a.json, reason=cooldown, remaining=1h0m0s]"
+    client_profile_enforcement_test.go:184: cooldown/stream error={"error":{"code":"model_cooldown","message":"All credentials for model gpt-fixture-main are cooling down via provider codex","model":"gpt-fixture-main","provider":"codex","reset_seconds":3600,"reset_time":"1h0m0s"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/cooldown/count
+time="2026-10-08T22:58:51+01:00" level=warning msg="auth unavailable: 1 of 1 candidate(s) for model \"gpt-fixture-main\" (provider=codex) are in cooldown: [auth_file=fixture-a.json, reason=cooldown, remaining=1h0m0s]"
+    client_profile_enforcement_test.go:184: cooldown/count error={"error":{"code":"model_cooldown","message":"All credentials for model gpt-fixture-main are cooling down via provider codex","model":"gpt-fixture-main","provider":"codex","reset_seconds":3600,"reset_time":"1h0m0s"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/expired/execute
+    client_profile_enforcement_test.go:184: expired/execute error=auth_unavailable: no auth available observations=[]
+=== RUN   TestClientProfileEnforcementFailures/expired/stream
+    client_profile_enforcement_test.go:184: expired/stream error=auth_unavailable: no auth available observations=[]
+=== RUN   TestClientProfileEnforcementFailures/expired/count
+    client_profile_enforcement_test.go:184: expired/count error=auth_unavailable: no auth available observations=[]
+=== RUN   TestClientProfileEnforcementFailures/deleted/execute
+    client_profile_enforcement_test.go:184: deleted/execute error={"error":{"code":"target_removed","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/deleted/stream
+    client_profile_enforcement_test.go:184: deleted/stream error={"error":{"code":"target_removed","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/deleted/count
+    client_profile_enforcement_test.go:184: deleted/count error={"error":{"code":"target_removed","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplicate/execute
+    client_profile_enforcement_test.go:184: duplicate/execute error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplicate/stream
+    client_profile_enforcement_test.go:184: duplicate/stream error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplicate/count
+    client_profile_enforcement_test.go:184: duplicate/count error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unsupported-duplicate/execute
+    client_profile_enforcement_test.go:184: unsupported-duplicate/execute error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unsupported-duplicate/stream
+    client_profile_enforcement_test.go:184: unsupported-duplicate/stream error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unsupported-duplicate/count
+    client_profile_enforcement_test.go:184: unsupported-duplicate/count error={"error":{"code":"duplicate_account_ref","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/provider/execute
+    client_profile_enforcement_test.go:184: provider/execute error={"error":{"code":"provider_mismatch","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/provider/stream
+    client_profile_enforcement_test.go:184: provider/stream error={"error":{"code":"provider_mismatch","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/provider/count
+    client_profile_enforcement_test.go:184: provider/count error={"error":{"code":"provider_mismatch","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/executor/execute
+    client_profile_enforcement_test.go:184: executor/execute error={"error":{"code":"target_unsupported","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/executor/stream
+    client_profile_enforcement_test.go:184: executor/stream error={"error":{"code":"target_unsupported","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/executor/count
+    client_profile_enforcement_test.go:184: executor/count error={"error":{"code":"target_unsupported","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/pin/execute
+    client_profile_enforcement_test.go:184: pin/execute error={"error":{"code":"profile_pin_conflict","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/pin/stream
+    client_profile_enforcement_test.go:184: pin/stream error={"error":{"code":"profile_pin_conflict","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/pin/count
+    client_profile_enforcement_test.go:184: pin/count error={"error":{"code":"profile_pin_conflict","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/mixed/execute
+    client_profile_enforcement_test.go:184: mixed/execute error={"error":{"code":"profile_mixed_provider_unsupported","field":"providers"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/mixed/stream
+    client_profile_enforcement_test.go:184: mixed/stream error={"error":{"code":"profile_mixed_provider_unsupported","field":"providers"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/mixed/count
+    client_profile_enforcement_test.go:184: mixed/count error={"error":{"code":"profile_mixed_provider_unsupported","field":"providers"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/home/execute
+    client_profile_enforcement_test.go:184: home/execute error={"error":{"code":"profile_home_unsupported","field":"home"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/home/stream
+    client_profile_enforcement_test.go:184: home/stream error={"error":{"code":"profile_home_unsupported","field":"home"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/home/count
+    client_profile_enforcement_test.go:184: home/count error={"error":{"code":"profile_home_unsupported","field":"home"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplex/execute
+    client_profile_enforcement_test.go:184: duplex/execute error={"error":{"code":"profile_protocol_unsupported","field":"bound_duplex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplex/stream
+    client_profile_enforcement_test.go:184: duplex/stream error={"error":{"code":"profile_protocol_unsupported","field":"bound_duplex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/duplex/count
+    client_profile_enforcement_test.go:184: duplex/count error={"error":{"code":"profile_protocol_unsupported","field":"bound_duplex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/stale/execute
+    client_profile_enforcement_test.go:184: stale/execute error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/stale/stream
+    client_profile_enforcement_test.go:184: stale/stream error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/stale/count
+    client_profile_enforcement_test.go:184: stale/count error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/missing-owner/execute
+    client_profile_enforcement_test.go:184: missing-owner/execute error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/missing-owner/stream
+    client_profile_enforcement_test.go:184: missing-owner/stream error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/missing-owner/count
+    client_profile_enforcement_test.go:184: missing-owner/count error={"error":{"code":"client_profile_stale","field":"binding"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unknown-plugin/execute
+    client_profile_enforcement_test.go:184: unknown-plugin/execute error={"error":{"code":"profile_scheduler_invalid","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unknown-plugin/stream
+    client_profile_enforcement_test.go:184: unknown-plugin/stream error={"error":{"code":"profile_scheduler_invalid","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unknown-plugin/count
+    client_profile_enforcement_test.go:184: unknown-plugin/count error={"error":{"code":"profile_scheduler_invalid","field":"auth"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/bootstrap/execute
+=== RUN   TestClientProfileEnforcementFailures/bootstrap/stream
+time="2026-10-08T22:58:51+01:00" level=warning msg="401 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unauthorized: fixture bootstrap failure"
+    client_profile_enforcement_test.go:184: bootstrap/stream error=unauthorized: fixture bootstrap failure observations=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementFailures/bootstrap/count
+=== RUN   TestClientProfileEnforcementFailures/unavailable/execute
+    client_profile_enforcement_test.go:184: unavailable/execute error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unavailable/stream
+    client_profile_enforcement_test.go:184: unavailable/stream error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+=== RUN   TestClientProfileEnforcementFailures/unavailable/count
+    client_profile_enforcement_test.go:184: unavailable/count error={"error":{"code":"target_unavailable","field":"codex"}} observations=[]
+--- PASS: TestClientProfileEnforcementFailures (0.08s)
+    --- PASS: TestClientProfileEnforcementFailures/disabled/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/disabled/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/disabled/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/cooldown/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/cooldown/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/cooldown/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/expired/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/expired/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/expired/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/deleted/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/deleted/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/deleted/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplicate/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplicate/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplicate/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unsupported-duplicate/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unsupported-duplicate/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unsupported-duplicate/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/provider/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/provider/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/provider/count (0.01s)
+    --- PASS: TestClientProfileEnforcementFailures/executor/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/executor/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/executor/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/pin/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/pin/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/pin/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/mixed/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/mixed/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/mixed/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/home/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/home/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/home/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplex/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplex/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/duplex/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/stale/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/stale/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/stale/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/missing-owner/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/missing-owner/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/missing-owner/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unknown-plugin/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unknown-plugin/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unknown-plugin/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/bootstrap/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/bootstrap/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/bootstrap/count (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unavailable/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unavailable/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementFailures/unavailable/count (0.00s)
+=== RUN   TestClientProfileEnforcementHTTP
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bcc8-76a3-a6a0-73825807bfdb
+    client_profile_enforcement_test.go:224: HTTP helper -> 200 {} observations=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bcc9-71c5-980b-3cb9df56a669
+    client_profile_enforcement_test.go:235: HTTP disabled A -> 503 {"error":{"code":"target_unavailable","field":"codex"}} observations=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bcc9-73f3-9b74-7b33d5e0ab40
+    client_profile_enforcement_test.go:240: HTTP legacy -> 200 {} observations=[{fixture-a execute} {fixture-b execute}]
+--- PASS: TestClientProfileEnforcementHTTP (0.01s)
+=== RUN   TestClientProfileEnforcementWebsocket
+=== RUN   TestClientProfileEnforcementWebsocket/reconnect
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=1f5d2398-c7fb-4db2-aef2-efad1eba0131 remote=127.0.0.1"
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+time="2026-10-08T22:58:51+01:00" level=warning msg="401 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=auth_file=fixture-a.json err=unavailable: fixture unavailable" request_id=01a11d86-bccd-7280-a032-7b29e873c2b4
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=1f5d2398-c7fb-4db2-aef2-efad1eba0131"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bccd-7280-a032-7b29e873c2b4
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=06b787af-ac1b-431c-988e-5668324c58a7 remote=127.0.0.1"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=06b787af-ac1b-431c-988e-5668324c58a7"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bcce-736e-b54c-d726f7323105
+=== RUN   TestClientProfileEnforcementWebsocket/key-delete
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=51ec468f-bb8f-4ca8-a590-827122d73c47 remote=127.0.0.1"
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=51ec468f-bb8f-4ca8-a590-827122d73c47"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=51ec468f-bb8f-4ca8-a590-827122d73c47"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bcd0-7449-b089-0f048c54d36f
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementWebsocket/profile-edit
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=5627aa04-c991-48e3-8fb3-75efcc07aa5a remote=127.0.0.1"
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=5627aa04-c991-48e3-8fb3-75efcc07aa5a"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=5627aa04-c991-48e3-8fb3-75efcc07aa5a"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bcd3-7501-97e7-6f9336d96c33
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementWebsocket/automatic-delete
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=a08e7e05-1ff0-436b-b582-08770a21c9e0 remote=127.0.0.1"
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=a08e7e05-1ff0-436b-b582-08770a21c9e0"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=a08e7e05-1ff0-436b-b582-08770a21c9e0"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |           3ms |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bcd5-7afc-99ee-e6d59e4a10e8
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementWebsocket/silent-rotation
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=ee2a8709-5ce0-4e81-a228-662ade6b1f11 remote=127.0.0.1"
+    client_profile_enforcement_test.go:272: WS reply={"type":"response.completed","response":{"id":"fixture-response","output":[]}} observations=[{fixture-a stream}]
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=ee2a8709-5ce0-4e81-a228-662ade6b1f11"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=ee2a8709-5ce0-4e81-a228-662ade6b1f11"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |           1ms |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bce4-74c6-bfa8-c78da1a3fca3
+    client_profile_enforcement_test.go:272: WS reply={"type":"error","status":503,"error":{"code":"client_profile_stale","field":"binding"}} observations=[{fixture-a stream}]
+--- PASS: TestClientProfileEnforcementWebsocket (0.03s)
+    --- PASS: TestClientProfileEnforcementWebsocket/reconnect (0.00s)
+    --- PASS: TestClientProfileEnforcementWebsocket/key-delete (0.00s)
+    --- PASS: TestClientProfileEnforcementWebsocket/profile-edit (0.00s)
+    --- PASS: TestClientProfileEnforcementWebsocket/automatic-delete (0.01s)
+    --- PASS: TestClientProfileEnforcementWebsocket/silent-rotation (0.01s)
+=== RUN   TestClientProfileEnforcementIndependentProviders
+    client_profile_enforcement_test.go:352: ClaudeOnly stayed on A, independent CodexAutomatic used C: [{fixture-a execute} {fixture-a stream} {fixture-a count} {fixture-c execute}]
+--- PASS: TestClientProfileEnforcementIndependentProviders (0.01s)
+=== RUN   TestClientProfileEnforcementFinalValidation
+=== RUN   TestClientProfileEnforcementFinalValidation/execute/provider
+=== RUN   TestClientProfileEnforcementFinalValidation/execute/removed
+=== RUN   TestClientProfileEnforcementFinalValidation/execute/duplicate
+=== RUN   TestClientProfileEnforcementFinalValidation/stream/provider
+=== RUN   TestClientProfileEnforcementFinalValidation/stream/removed
+=== RUN   TestClientProfileEnforcementFinalValidation/stream/duplicate
+=== RUN   TestClientProfileEnforcementFinalValidation/count/provider
+=== RUN   TestClientProfileEnforcementFinalValidation/count/removed
+=== RUN   TestClientProfileEnforcementFinalValidation/count/duplicate
+--- PASS: TestClientProfileEnforcementFinalValidation (0.03s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/execute/provider (0.01s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/execute/removed (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/execute/duplicate (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/stream/provider (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/stream/removed (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/stream/duplicate (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/count/provider (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/count/removed (0.00s)
+    --- PASS: TestClientProfileEnforcementFinalValidation/count/duplicate (0.00s)
+=== RUN   TestClientProfileEnforcementDirectRoutes
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/realtime/client_secrets\"" request_id=01a11d86-bd14-7e1d-916e-4497213532a9
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime/client_secrets -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/realtime/sessions\"" request_id=01a11d86-bd15-7403-8198-a589901e725c
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime/sessions -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/realtime\"" request_id=01a11d86-bd15-7693-98ac-b2a7b44d1988
+    client_profile_enforcement_test.go:410: HTTP /v1/realtime -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/live\"" request_id=01a11d86-bd15-7893-8f1c-682ded8d9e33
+    client_profile_enforcement_test.go:410: HTTP /v1/live -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/alpha/search\"" request_id=01a11d86-bd15-797d-857f-c0c6b7b16f8a
+    client_profile_enforcement_test.go:410: HTTP /v1/alpha/search -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/backend-api/codex/alpha/search\"" request_id=01a11d86-bd15-7b04-bb6e-d5c934874d16
+    client_profile_enforcement_test.go:410: HTTP /backend-api/codex/alpha/search -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/videos\"" request_id=01a11d86-bd15-7c6f-ace2-75dc242bc427
+    client_profile_enforcement_test.go:410: HTTP /v1/videos -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/openai/v1/videos\"" request_id=01a11d86-bd15-7d81-9882-9d995f0e5d3e
+    client_profile_enforcement_test.go:410: HTTP /openai/v1/videos -> 503 {"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}}; no upstream events
+--- PASS: TestClientProfileEnforcementDirectRoutes (0.00s)
+=== RUN   TestClientProfileEnforcementRefresh
+=== RUN   TestClientProfileEnforcementRefresh/execute/change-provider=false
+    client_profile_enforcement_test.go:464: refresh changed=false error=<nil> observations=[{fixture-a execute} {fixture-a execute}]
+=== RUN   TestClientProfileEnforcementRefresh/execute/change-provider=true
+time="2026-10-08T22:58:51+01:00" level=warning msg="401 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=provider=codex auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:464: refresh changed=true error=unavailable: fixture unavailable observations=[{fixture-a execute}]
+=== RUN   TestClientProfileEnforcementRefresh/stream/change-provider=false
+    client_profile_enforcement_test.go:464: refresh changed=false error=<nil> observations=[{fixture-a stream} {fixture-a stream}]
+=== RUN   TestClientProfileEnforcementRefresh/stream/change-provider=true
+time="2026-10-08T22:58:51+01:00" level=warning msg="401 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=provider=codex auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:464: refresh changed=true error=unavailable: fixture unavailable observations=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementRefresh/count/change-provider=false
+    client_profile_enforcement_test.go:464: refresh changed=false error=<nil> observations=[{fixture-a count} {fixture-a count}]
+=== RUN   TestClientProfileEnforcementRefresh/count/change-provider=true
+time="2026-10-08T22:58:51+01:00" level=warning msg="401 |            0s | upstream execution failed: provider=codex model=gpt-fixture-main auth=provider=codex auth_file=fixture-a.json err=unavailable: fixture unavailable"
+    client_profile_enforcement_test.go:464: refresh changed=true error=unavailable: fixture unavailable observations=[{fixture-a count}]
+--- PASS: TestClientProfileEnforcementRefresh (0.01s)
+    --- PASS: TestClientProfileEnforcementRefresh/execute/change-provider=false (0.00s)
+    --- PASS: TestClientProfileEnforcementRefresh/execute/change-provider=true (0.00s)
+    --- PASS: TestClientProfileEnforcementRefresh/stream/change-provider=false (0.00s)
+    --- PASS: TestClientProfileEnforcementRefresh/stream/change-provider=true (0.00s)
+    --- PASS: TestClientProfileEnforcementRefresh/count/change-provider=false (0.00s)
+    --- PASS: TestClientProfileEnforcementRefresh/count/change-provider=true (0.00s)
+=== RUN   TestClientProfileEnforcementPluginPool
+=== RUN   TestClientProfileEnforcementPluginPool/execute
+=== RUN   TestClientProfileEnforcementPluginPool/stream
+=== RUN   TestClientProfileEnforcementPluginPool/count
+--- PASS: TestClientProfileEnforcementPluginPool (0.00s)
+    --- PASS: TestClientProfileEnforcementPluginPool/execute (0.00s)
+    --- PASS: TestClientProfileEnforcementPluginPool/stream (0.00s)
+    --- PASS: TestClientProfileEnforcementPluginPool/count (0.00s)
+=== RUN   TestClientProfileEnforcementImages
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/images/generations\"" request_id=01a11d86-bd2c-7543-92ea-69b439d28059
+    client_profile_enforcement_test.go:526: HTTP images disabled=false -> 200 {} observations=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/images/generations\"" request_id=01a11d86-bd2d-7119-b074-07c52ed9e7ce
+    client_profile_enforcement_test.go:526: HTTP images disabled=true -> 503 {"error":{"code":"target_unavailable","field":"codex"}} observations=[{fixture-a execute}]
+--- PASS: TestClientProfileEnforcementImages (0.01s)
+=== RUN   TestClientProfileEnforcementExclusiveFrontendHTTP
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bd31-7606-88bb-b630cbb53d76
+    client_profile_enforcement_test.go:562: HTTP exclusive frontend disabled=false -> 200 {} observations=[{fixture-a execute}]
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | POST    \"/v1/responses\"" request_id=01a11d86-bd32-75c4-8b32-7ec1faaac64e
+    client_profile_enforcement_test.go:562: HTTP exclusive frontend disabled=true -> 503 {"error":{"code":"target_unavailable","field":"codex"}} observations=[{fixture-a execute}]
+--- PASS: TestClientProfileEnforcementExclusiveFrontendHTTP (0.01s)
+=== RUN   TestClientProfileEnforcementAutomaticPool
+    client_profile_enforcement_test.go:585: Automatic profile eligible pool observations=[{fixture-a execute} {fixture-b execute}]
+--- PASS: TestClientProfileEnforcementAutomaticPool (0.00s)
+=== RUN   TestClientProfileEnforcementSteeringRejectsBeforeUpgrade
+=== RUN   TestClientProfileEnforcementSteeringRejectsBeforeUpgrade/only
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bd38-7ee0-bb63-8af05ad86d1b
+=== RUN   TestClientProfileEnforcementSteeringRejectsBeforeUpgrade/automatic
+time="2026-10-08T22:58:51+01:00" level=error msg="503 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bd3b-7338-907b-5552ae118996
+--- PASS: TestClientProfileEnforcementSteeringRejectsBeforeUpgrade (0.00s)
+    --- PASS: TestClientProfileEnforcementSteeringRejectsBeforeUpgrade/only (0.00s)
+    --- PASS: TestClientProfileEnforcementSteeringRejectsBeforeUpgrade/automatic (0.00s)
+=== RUN   TestClientProfileEnforcementBoundWSOwnerLoss
+=== RUN   TestClientProfileEnforcementBoundWSOwnerLoss/only
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=325360ff-3bbe-4111-9fd6-b39c47d777cd remote=127.0.0.1"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=325360ff-3bbe-4111-9fd6-b39c47d777cd"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=325360ff-3bbe-4111-9fd6-b39c47d777cd"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bd3e-7603-a5a8-ee637475f396
+    client_profile_enforcement_test.go:664: turn after configured credential owner removed: {"type":"error","status":503,"error":{"code":"profile_owner_unavailable","field":"binding"}}; calls=[{fixture-a stream}]
+=== RUN   TestClientProfileEnforcementBoundWSOwnerLoss/automatic
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: client connected id=2e675ef1-7a5d-4ae3-b4c7-dda97cf3e090 remote=127.0.0.1"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: session closing id=2e675ef1-7a5d-4ae3-b4c7-dda97cf3e090"
+time="2026-10-08T22:58:51+01:00" level=info msg="responses websocket: upstream execution session closed id=2e675ef1-7a5d-4ae3-b4c7-dda97cf3e090"
+time="2026-10-08T22:58:51+01:00" level=info msg="200 |            0s |       127.0.0.1 | GET     \"/v1/responses\"" request_id=01a11d86-bd43-79df-b812-1b4451802f55
+    client_profile_enforcement_test.go:664: turn after configured credential owner removed: {"type":"error","status":503,"error":{"code":"profile_owner_unavailable","field":"binding"}}; calls=[{fixture-a stream}]
+--- PASS: TestClientProfileEnforcementBoundWSOwnerLoss (0.01s)
+    --- PASS: TestClientProfileEnforcementBoundWSOwnerLoss/only (0.01s)
+    --- PASS: TestClientProfileEnforcementBoundWSOwnerLoss/automatic (0.00s)
+=== RUN   TestClientProfileEnforcementStrictInjectCredentials
+    client_profile_enforcement_test.go:686: strict A-only direct injection error={"error":{"code":"profile_protocol_unsupported","field":"direct_transport"}} injected=
+--- PASS: TestClientProfileEnforcementStrictInjectCredentials (0.00s)
+=== RUN   TestClientProfileEnforcementPreparationDenial
+=== RUN   TestClientProfileEnforcementPreparationDenial/execute/account
+    client_profile_enforcement_test.go:769: execute/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/execute/id
+    client_profile_enforcement_test.go:769: execute/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/execute/ref
+    client_profile_enforcement_test.go:769: execute/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/execute/owner-before-prepare
+    client_profile_enforcement_test.go:769: execute/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/execute/removed-before-prepare
+    client_profile_enforcement_test.go:769: execute/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/count/account
+    client_profile_enforcement_test.go:769: count/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/count/id
+    client_profile_enforcement_test.go:769: count/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/count/ref
+    client_profile_enforcement_test.go:769: count/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/count/owner-before-prepare
+    client_profile_enforcement_test.go:769: count/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/count/removed-before-prepare
+    client_profile_enforcement_test.go:769: count/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/stream/account
+    client_profile_enforcement_test.go:769: stream/account typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/stream/id
+    client_profile_enforcement_test.go:769: stream/id typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/stream/ref
+    client_profile_enforcement_test.go:769: stream/ref typed error={"error":{"code":"profile_target_changed","field":"credential_acquisition"}} preparations=1 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/stream/owner-before-prepare
+    client_profile_enforcement_test.go:769: stream/owner-before-prepare typed error={"error":{"code":"profile_owner_unavailable","field":"binding"}} preparations=0 upstream=[]; credential state unchanged
+=== RUN   TestClientProfileEnforcementPreparationDenial/stream/removed-before-prepare
+    client_profile_enforcement_test.go:769: stream/removed-before-prepare typed error={"error":{"code":"target_removed","field":"codex"}} preparations=0 upstream=[]; credential state unchanged
+--- PASS: TestClientProfileEnforcementPreparationDenial (0.02s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/execute/account (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/execute/id (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/execute/ref (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/execute/owner-before-prepare (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/execute/removed-before-prepare (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/count/account (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/count/id (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/count/ref (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/count/owner-before-prepare (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/count/removed-before-prepare (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/stream/account (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/stream/id (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/stream/ref (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/stream/owner-before-prepare (0.00s)
+    --- PASS: TestClientProfileEnforcementPreparationDenial/stream/removed-before-prepare (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/test	0.645s
