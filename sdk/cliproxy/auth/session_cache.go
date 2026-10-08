@@ -106,6 +106,26 @@ func (c *SessionCache) Get(sessionID string) (string, bool) {
 	return "", false
 }
 
+func (c *SessionCache) lookupAffinity(provider, sessionID, model string) []string {
+	if c == nil {
+		return nil
+	}
+	key := provider + "::" + sessionID + "::" + model
+	prefix := provider + "/caller/"
+	suffix := "::" + sessionID + "::" + model
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	now := time.Now()
+	var ids []string
+	for candidate, entry := range c.entries {
+		scoped := strings.HasPrefix(candidate, prefix) && strings.HasSuffix(candidate, suffix) && len(candidate) == len(prefix)+64+len(suffix)
+		if (candidate == key || scoped) && now.Before(entry.expiresAt) {
+			ids = append(ids, entry.authID)
+		}
+	}
+	return ids
+}
+
 // GetAndRefresh retrieves the auth ID bound to a session and refreshes the TTL
 // for every identifier known to represent the same logical session.
 func (c *SessionCache) GetAndRefresh(sessionID string) (string, bool) {

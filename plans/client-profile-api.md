@@ -144,3 +144,9 @@ Business policy failures return HTTP 503 with `{"error":{"code":"machine_code","
 Final target and current-binding checks are read-only. They do not change model IDs or business payloads, and leave executor payload rules as the final semantic barrier before transport.
 
 The isolated evidence command is `go test -count=1 -v -run TestClientProfileEnforcement ./test ./internal/api/... ./sdk/api/handlers/... ./sdk/cliproxy/auth ./sdk/cliproxy/session`. The fixture uses actual server HTTP/WebSocket routes, synthetic credentials, temporary files and ephemeral loopback ports. A separate B canary proves the other account remains enabled.
+
+### Conversation bindings
+
+Local conversation affinity is isolated by the authenticated client-key identity, including for unprofiled keys. Reused session IDs, parent aliases and legacy content hashes cannot read, rewrite or release another client's binding. Helpers using the same key retain parent affinity. SDK callers without caller-scope metadata retain their existing namespace. LCP matching already applies caller isolation.
+
+Trusted host-plugin affinity diagnostics aggregate clients without selecting or refreshing a binding. If one session is independently bound to different accounts, the diagnostic returns `ambiguous`.

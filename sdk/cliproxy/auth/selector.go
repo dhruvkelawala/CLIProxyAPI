@@ -967,9 +967,7 @@ func (s *SessionAffinitySelector) Trees() *cliproxysession.InMemorySessionTreeSt
 // applies to cold bindings, requests without a session, and genuine bound-credential
 // failover, so the fallback selector only ever receives the highest available priority tier.
 //
-// Note: The cache key includes provider, session ID, and model to handle cases where
-// a session uses multiple models (e.g., gemini-2.5-pro and gemini-3-flash-preview)
-// that may be supported by different auth credentials, and to avoid cross-provider conflicts.
+// Bindings are isolated by caller, provider, session and model.
 func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model string, opts cliproxyexecutor.Options, auths []*Auth) (*Auth, error) {
 	entry := selectorLogEntry(ctx)
 	if opts.Metadata == nil {
@@ -1036,7 +1034,8 @@ func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model stri
 	fallbackAuths := highestPriorityAuths(available)
 
 	modelKey := canonicalModelKey(model)
-	cacheKey := provider + "::" + primaryID + "::" + modelKey
+	cacheNamespace := sessionAffinityCacheNamespace(provider, opts.Metadata)
+	cacheKey := cacheNamespace + "::" + primaryID + "::" + modelKey
 	isFork := false
 	if opts.Metadata != nil {
 		if forkFlag, ok := opts.Metadata[cliproxyexecutor.IsForkMetadataKey].(bool); ok && forkFlag {
@@ -1046,7 +1045,7 @@ func (s *SessionAffinitySelector) Pick(ctx context.Context, provider, model stri
 	isSubagent := !isFork && isSubagentSession(primaryID, fallbackID)
 	fallbackKey := ""
 	if fallbackID != "" && fallbackID != primaryID {
-		fallbackKey = provider + "::" + fallbackID + "::" + modelKey
+		fallbackKey = cacheNamespace + "::" + fallbackID + "::" + modelKey
 	}
 	bind := func(authID string) {
 		if fallbackKey != "" && !isSubagent && !isFork {
@@ -1247,6 +1246,14 @@ func canonicalLCPProvider(provider string) string {
 	}
 }
 
+func sessionAffinityCacheNamespace(provider string, metadata map[string]any) string {
+	scope := sessionMetadataString(metadata, cliproxyexecutor.CallerScopeMetadataKey)
+	if scope == "" {
+		return provider
+	}
+	return provider + "/caller/" + cliproxysession.CallerScope(scope)
+}
+
 func lcpAffinityNamespace(provider, model string, metadata map[string]any) string {
 	provider = canonicalLCPProvider(provider)
 	model = canonicalModelKey(model)
@@ -1354,9 +1361,8 @@ func (s *SessionAffinitySelector) InvalidateAuth(authID string) {
 	}
 }
 
-// LookupAffinity observes the current session affinity binding without side effects.
-// It never selects a credential, creates a binding, rebinds, or refreshes TTL.
-// Optional authFilters allow callers (such as Manager) to exclude credentials that do not match the requested provider.
+// LookupAffinity observes bindings across callers for trusted host diagnostics without selecting or refreshing them.
+// Conflicting accounts are ambiguous; authFilters can exclude credentials.
 func (s *SessionAffinitySelector) LookupAffinity(provider, model, sessionID string, authFilters ...func(authID string) bool) (string, string) {
 	if s == nil || s.cache == nil {
 		return "", "unsupported"
@@ -1407,8 +1413,7 @@ func (s *SessionAffinitySelector) LookupAffinity(provider, model, sessionID stri
 	for _, candProvider := range providers {
 		for _, cand := range candidates {
 			bounded := cliproxysession.BoundSessionIdentity(cand)
-			key := candProvider + "::" + bounded + "::" + modelKey
-			if authID, ok := s.cache.Get(key); ok && authID != "" {
+			for _, authID := range s.cache.lookupAffinity(candProvider, bounded, modelKey) {
 				if authFilter != nil && !authFilter(authID) {
 					continue
 				}
@@ -1532,10 +1537,11 @@ func (s *SessionAffinitySelector) OnResult(res Result) {
 		fallbackID = cliproxysession.BoundSessionIdentity(fallbackID)
 	}
 
-	cacheKey := ns + "::" + primaryID + "::" + nsModel
+	cacheNamespace := sessionAffinityCacheNamespace(ns, res.Options.Metadata)
+	cacheKey := cacheNamespace + "::" + primaryID + "::" + nsModel
 	var fallbackKey string
 	if fallbackID != "" && fallbackID != primaryID && !isSubagentSession(primaryID, fallbackID) {
-		fallbackKey = ns + "::" + fallbackID + "::" + nsModel
+		fallbackKey = cacheNamespace + "::" + fallbackID + "::" + nsModel
 	}
 	if res.Success {
 		s.cache.Touch(cacheKey, res.AuthID)
