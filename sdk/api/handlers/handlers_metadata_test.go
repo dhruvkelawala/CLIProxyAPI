@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
+	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
 	coreexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
 	coresession "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/session"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
@@ -322,4 +325,56 @@ func TestEnrichContextWithSessionHierarchyFromBody(t *testing.T) {
 	if meta8.SessionID != "session:opencode-sess-1" || meta8.ParentSessionID != "session:opencode-root-1" {
 		t.Fatalf("OpenCode parent_id session = (%q, %q), want (session:opencode-sess-1, session:opencode-root-1)", meta8.SessionID, meta8.ParentSessionID)
 	}
+}
+
+type clientProfileMetadataExecutor struct {
+	failOnceStreamExecutor
+	metadata  map[string]any
+	accountID string
+}
+
+func (e *clientProfileMetadataExecutor) Execute(_ context.Context, a *coreauth.Auth, _ coreexecutor.Request, opts coreexecutor.Options) (coreexecutor.Response, error) {
+	e.accountID = a.ID
+	e.metadata = maps.Clone(opts.Metadata)
+	return coreexecutor.Response{Payload: []byte(`{}`)}, nil
+}
+
+func TestClientProfileFixtureCallerAndPinMetadata(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	ginCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ginCtx.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil)
+	ginCtx.Request.Header.Set("X-Caller-Scope", "spoofed")
+	ginCtx.Set("userApiKey", "fixture-client-key")
+	executor := &clientProfileMetadataExecutor{}
+	manager := coreauth.NewManager(nil, nil, nil)
+	manager.RegisterExecutor(executor)
+	for _, id := range []string{"metadata-fixture-a", "metadata-fixture-b"} {
+		if _, err := manager.Register(context.Background(), &coreauth.Auth{ID: id, Provider: "codex", Status: coreauth.StatusActive}); err != nil {
+			t.Fatal(err)
+		}
+		registry.GetGlobalRegistry().RegisterClient(id, "codex", []*registry.ModelInfo{{ID: "metadata-fixture-model"}})
+		t.Cleanup(func() { registry.GetGlobalRegistry().UnregisterClient(id) })
+		manager.RefreshSchedulerEntry(id)
+	}
+	handler := NewBaseAPIHandlers(&config.SDKConfig{}, manager)
+	ctx, cancel := handler.GetContextWithCancel(nil, ginCtx, WithPinnedAuthID(context.Background(), "metadata-fixture-a"))
+	defer cancel()
+	_, _, errMsg := handler.ExecuteWithAuthManager(ctx, "openai", "metadata-fixture-model", []byte(`{"model":"metadata-fixture-model","input":[]}`), "")
+	if errMsg != nil {
+		t.Fatalf("execute: %v", errMsg.Error)
+	}
+	if executor.accountID != "metadata-fixture-a" {
+		t.Fatalf("selected account=%s", executor.accountID)
+	}
+	metadata := executor.metadata
+	if got := metadata[coreexecutor.CallerScopeMetadataKey]; got != coresession.CallerScope("fixture-client-key") {
+		t.Fatalf("executor authenticated caller hash=%v", got)
+	}
+	if got := metadata[coreexecutor.PinnedAuthMetadataKey]; got != "metadata-fixture-a" {
+		t.Fatalf("executor pin=%v", got)
+	}
+	if metadata[coreexecutor.CallerScopeMetadataKey] == "fixture-client-key" {
+		t.Fatal("raw key propagated")
+	}
+	t.Log("executor received authenticated caller hash and internal pin; spoofed scope header did not replace caller identity")
 }
