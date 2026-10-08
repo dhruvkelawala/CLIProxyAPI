@@ -31,14 +31,14 @@ const kimiReasoningUnavailable = "[reasoning unavailable]"
 
 // KimiExecutor is a stateless executor for Kimi API using OpenAI-compatible chat completions.
 type KimiExecutor struct {
-	ClaudeExecutor
+	*ClaudeExecutor
 	cfg *config.Config
 }
 
 // NewKimiExecutor creates a new Kimi executor.
 func NewKimiExecutor(cfg *config.Config) *KimiExecutor {
 	return &KimiExecutor{
-		ClaudeExecutor: ClaudeExecutor{
+		ClaudeExecutor: &ClaudeExecutor{
 			cfg:                     cfg,
 			requestLogProvider:      "kimi",
 			upstreamModelNormalizer: normalizeKimiUpstreamModel,
@@ -1386,8 +1386,9 @@ func normalizeKimiTemperature(body []byte) []byte {
 func (e *KimiExecutor) SupportsApplyPatch() bool { return e != nil }
 
 // ForAPIKey preserves Kimi's actual Responses/Chat routing while scoping its config.
-func (e KimiExecutor) ForAPIKey() cliproxyauth.ProviderExecutor {
-	e.cfg = e.cfg.ForAPIKey()
-	e.ClaudeExecutor = *e.ClaudeExecutor.ForAPIKey().(*ClaudeExecutor)
-	return &e
+func (e *KimiExecutor) ForAPIKey() cliproxyauth.ProviderExecutor {
+	return &KimiExecutor{
+		cfg:            e.cfg.ForAPIKey(),
+		ClaudeExecutor: e.ClaudeExecutor.ForAPIKey().(*ClaudeExecutor),
+	}
 }
