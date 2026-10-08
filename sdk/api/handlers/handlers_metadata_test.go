@@ -323,3 +323,23 @@ func TestEnrichContextWithSessionHierarchyFromBody(t *testing.T) {
 		t.Fatalf("OpenCode parent_id session = (%q, %q), want (session:opencode-sess-1, session:opencode-root-1)", meta8.SessionID, meta8.ParentSessionID)
 	}
 }
+
+func TestClientProfileFixtureCallerAndPinMetadata(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	ginCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ginCtx.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil)
+	ginCtx.Request.Header.Set("X-Caller-Scope", "spoofed")
+	ginCtx.Set("userApiKey", "fixture-client-key")
+	ctx := WithPinnedAuthID(context.WithValue(context.Background(), "gin", ginCtx), "fixture-a")
+	metadata := requestExecutionMetadata(ctx)
+	if got := metadata[coreexecutor.CallerScopeMetadataKey]; got != coresession.CallerScope("fixture-client-key") {
+		t.Fatalf("authenticated caller hash=%v", got)
+	}
+	if got := metadata[coreexecutor.PinnedAuthMetadataKey]; got != "fixture-a" {
+		t.Fatalf("pin=%v", got)
+	}
+	if metadata[coreexecutor.CallerScopeMetadataKey] == "fixture-client-key" {
+		t.Fatal("raw key propagated")
+	}
+	t.Log("authenticated caller hash and internal pin coexist; client scope header does not replace caller identity")
+}
