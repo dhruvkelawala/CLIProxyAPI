@@ -3,6 +3,7 @@ package claude
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,11 +11,59 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
 	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
 	"github.com/tidwall/gjson"
 )
+
+func TestClaudeClientProfileErrorPreservesContract(t *testing.T) {
+	for _, streaming := range []bool{false, true} {
+		name := "JSON"
+		if streaming {
+			name = "committed SSE"
+		}
+		t.Run(name, func(t *testing.T) {
+			gin.SetMode(gin.TestMode)
+			recorder := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(recorder)
+			c.Request = httptest.NewRequest(http.MethodPost, "/v1/messages", nil)
+			handler := NewClaudeCodeAPIHandler(&handlers.BaseAPIHandler{})
+			msg := &interfaces.ErrorMessage{
+				StatusCode: http.StatusServiceUnavailable,
+				Error:      fmt.Errorf("wrapped: %w", clientprofiles.Denied("target_unavailable", "claude")),
+			}
+			if streaming {
+				c.Header("Content-Type", "text/event-stream")
+				_, _ = c.Writer.Write([]byte("event: message_start\ndata: {}\n\n"))
+				c.Writer.Flush()
+				errs := make(chan *interfaces.ErrorMessage, 1)
+				errs <- msg
+				close(errs)
+				handler.forwardClaudeStream(c, c.Writer, func(error) {}, nil, errs)
+			} else {
+				handler.WriteErrorResponse(c, msg)
+			}
+			body := recorder.Body.String()
+			if streaming {
+				_, body, _ = strings.Cut(body, "event: error\ndata: ")
+				body = strings.TrimSpace(body)
+			} else if recorder.Code != http.StatusServiceUnavailable {
+				t.Fatalf("status = %d, want 503", recorder.Code)
+			}
+			for key, want := range map[string]string{
+				"type": "error", "error.type": "api_error",
+				"error.code": "target_unavailable", "error.field": "claude",
+				"error.message": "target_unavailable",
+			} {
+				if got := gjson.Get(body, key).String(); got != want {
+					t.Errorf("%s = %q, want %q; body=%s", key, got, want, body)
+				}
+			}
+		})
+	}
+}
 
 func TestClaudeErrorTypeFromStatus(t *testing.T) {
 	for _, tt := range []struct {

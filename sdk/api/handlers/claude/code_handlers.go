@@ -21,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	claudemodels "github.com/router-for-me/CLIProxyAPI/v8/internal/client/claude/models"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	. "github.com/router-for-me/CLIProxyAPI/v8/internal/constant"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
@@ -330,6 +331,8 @@ func (h *ClaudeCodeAPIHandler) forwardClaudeStream(c *gin.Context, flusher http.
 type claudeErrorDetail struct {
 	Type    string              `json:"type"`
 	Message string              `json:"message"`
+	Code    string              `json:"code,omitempty"`
+	Field   string              `json:"field,omitempty"`
 	Details *claudeErrorDetails `json:"details,omitempty"`
 }
 
@@ -366,6 +369,12 @@ func (h *ClaudeCodeAPIHandler) toClaudeError(msg *interfaces.ErrorMessage) claud
 	}
 	if clienterror.IsClaudeThreadNotFound(status, errors.New(errText)) {
 		response.Error.Details = &claudeErrorDetails{ErrorCode: "thread_not_found"}
+	}
+	var profileErr *clientprofiles.ExecutionError
+	if msg != nil && errors.As(msg.Error, &profileErr) {
+		response.Error.Code = profileErr.Code
+		response.Error.Field = profileErr.Field
+		response.Error.Message = profileErr.Code
 	}
 	return response
 }
