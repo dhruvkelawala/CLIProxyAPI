@@ -1,0 +1,10 @@
+=== RUN   TestExecuteStreamWithAuthManager_CancelDuringSynchronousBootstrap
+--- PASS: TestExecuteStreamWithAuthManager_CancelDuringSynchronousBootstrap (0.00s)
+=== RUN   TestInternalModelExecutionIsolatesDelivery
+=== RUN   TestInternalModelExecutionIsolatesDelivery/nonstream
+=== RUN   TestInternalModelExecutionIsolatesDelivery/stream
+--- PASS: TestInternalModelExecutionIsolatesDelivery (0.00s)
+    --- PASS: TestInternalModelExecutionIsolatesDelivery/nonstream (0.00s)
+    --- PASS: TestInternalModelExecutionIsolatesDelivery/stream (0.00s)
+PASS
+ok  	github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers	0.285s
