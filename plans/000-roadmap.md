@@ -26,6 +26,7 @@ Per-client Prefer/fallback, actual served-by attribution and durable cost/token 
 | [CPA-005](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/2) | Let the dashboard choose and enforce a subscription for each client | Dashboard | CPA-002, CPA-003, CPA-004 | TODO |
 | [CPA-006](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/3) | Make account and client-route controls accessible in both themes | Dashboard | CPA-004, CPA-005 | TODO |
 | [CPA-007](https://github.com/dhruvkelawala/CLIProxyAPI/issues/4) | Package pinned releases and configure both Macs through existing T3 instances | Backend | CPA-001, CPA-002, CPA-003, CPA-004, CPA-005, CPA-006 | TODO |
+| [CPA-008](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/4) | Expose shared load-balancing strategies with priority, weights and session affinity | Dashboard | CPA-004, CPA-005, CPA-006 | TODO |
 
 ## Recommended order
 
@@ -33,7 +34,8 @@ Per-client Prefer/fallback, actual served-by attribution and durable cost/token 
 2. [CPA-004](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/1) can start independently for account presentation.
 3. Complete CPA-002 and CPA-003 before claiming subscription selection is enforced.
 4. Build CPA-005 against the implemented backend contract, then complete CPA-006.
-5. CPA-007 owns exact release artifacts, two-machine acceptance, staging and rollback. No production cutover is part of backlog setup.
+5. CPA-008 follows CPA-005/006 for the shared load-balancing UI; it does not delay the strict-selection release.
+6. CPA-007 owns exact release artifacts, two-machine acceptance, staging and rollback. No production cutover is part of backlog setup.
 
 ## Acceptance that closes this project
 
@@ -52,3 +54,9 @@ Dashboard: v1.25.4, 6abace9ffb83a9ac349464ded04bb4e7f7cb309e.
 Each fork uses sumo/main as the development base. Upstream remains a separate remote.
 
 Setup checks passed: backend go test ./... and build; dashboard 1,493 tests, lint and TypeScript/production build with Bun 1.3.14. This verifies the upstream starting point, not the proposed enforcement feature. Full pickup instructions and ticket copies are under plans/ in both forks.
+
+## Approved load-balancing follow-up
+
+[CPA-008](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/4) collects the existing global round-robin, weighted-round-robin and fill-first strategies, account priority/weights and session affinity into one clear routing flow. Pick it up after CPA-005/006; strict subscription selection remains first. It is an optional follow-up and does not block the core rollout in CPA-007.
+
+Global strategy changes affect Automatic clients across provider pools on the shared gateway, including both Macs. Only profiles remain strict. Preserve saved defaults on upgrade. Per-client/provider pools and strategy overrides, quota-aware routing and least-busy routing are deferred; they need separate backend contracts or reliable telemetry.

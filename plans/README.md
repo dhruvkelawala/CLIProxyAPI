@@ -21,6 +21,7 @@ Use `sumo/main` as the base for a new ticket branch. The plan linked from each i
 | [CPA-005](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/2) | Let the dashboard choose and enforce a subscription for each client | Dashboard | CPA-002, CPA-003, CPA-004 | TODO |
 | [CPA-006](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/3) | Make account and client-route controls accessible in both themes | Dashboard | CPA-004, CPA-005 | TODO |
 | [CPA-007](https://github.com/dhruvkelawala/CLIProxyAPI/issues/4) | Package pinned releases and configure both Macs through existing T3 instances | Backend | CPA-001, CPA-002, CPA-003, CPA-004, CPA-005, CPA-006 | TODO |
+| [CPA-008](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/4) | Expose shared load-balancing strategies with priority, weights and session affinity | Dashboard | CPA-004, CPA-005, CPA-006 | TODO |
 
 This repository's ticket copies are in this directory. `TICKETS.json` mirrors the cross-repository index. Update statuses here and in the tracking issue when work lands; close the individual issue with implementation evidence.
 
@@ -62,3 +63,9 @@ The proxy and custom panel are separate artifacts. The deployment to support lat
 ## Verified during setup
 
 See [BASELINE.md](BASELINE.md). Backend tests/build passed. Dashboard passed 1,493 tests, lint and TypeScript/production build. Source and workflows remain upstream-identical at this point; only plans and the illustrative concept were added. The proposed subscription enforcement is still TODO.
+
+## Approved load-balancing follow-up
+
+[CPA-008](https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/4) collects the existing global round-robin, weighted-round-robin and fill-first strategies, account priority/weights and session affinity into one clear routing flow. Pick it up after CPA-005/006; strict subscription selection remains first. It is an optional follow-up and does not block the core rollout in CPA-007.
+
+Global strategy changes affect Automatic clients across provider pools on the shared gateway, including both Macs. Only profiles remain strict. Preserve saved defaults on upgrade. Per-client/provider pools and strategy overrides, quota-aware routing and least-busy routing are deferred; they need separate backend contracts or reliable telemetry.

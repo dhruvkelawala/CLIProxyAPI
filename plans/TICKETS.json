@@ -94,5 +94,20 @@
     ],
     "plan": "plans/007-staged-rollout.md",
     "status": "TODO"
+  },
+  {
+    "id": "CPA-008",
+    "repo": "dhruvkelawala/Cli-Proxy-API-Management-Center",
+    "number": 4,
+    "url": "https://github.com/dhruvkelawala/Cli-Proxy-API-Management-Center/issues/4",
+    "title": "Expose shared load-balancing strategies with priority, weights and session affinity",
+    "priority": "P2",
+    "dependsOn": [
+      "CPA-004",
+      "CPA-005",
+      "CPA-006"
+    ],
+    "plan": "plans/008-shared-load-balancing.md",
+    "status": "TODO"
   }
 ]
