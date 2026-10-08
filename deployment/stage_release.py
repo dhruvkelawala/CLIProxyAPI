@@ -39,6 +39,10 @@ class EgressTrap(http.server.BaseHTTPRequestHandler):
         pass
 
 
+def interrupt_stage(*_):
+    raise KeyboardInterrupt
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--release', type=Path, required=True)
@@ -154,6 +158,7 @@ def main():
         assert status == 200 and hashlib.sha256(raw).hexdigest() == manifest['files']['management.html']['sha256']
         print(json.dumps({'panel_sha256': hashlib.sha256(raw).hexdigest(), 'enforcement': True}), flush=True)
 
+    signal.signal(signal.SIGTERM, interrupt_stage)
     try:
         start(release / 'cli-proxy-api')
         matrix()
@@ -182,7 +187,6 @@ def main():
         (root / 'stage-info.json').write_text(json.dumps(info))
         print(json.dumps(info), flush=True)
         if args.keep_running:
-            signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
             signal.pause()
     except KeyboardInterrupt:
         pass

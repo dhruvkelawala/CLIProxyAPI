@@ -46,6 +46,9 @@ def main():
     binary = output / 'cli-proxy-api'
     flags = '-s -w -X main.Version=' + args.backend_tag + ' -X main.Commit=' + backend_commit
     run(['go', 'build', '-trimpath', '-ldflags=' + flags, '-o', str(binary), './cmd/server'], args.backend, env)
+    run(['bunx', 'bun@1.3.14', 'install', '--frozen-lockfile'], args.panel)
+    if git(args.panel, 'status', '--porcelain'):
+        raise SystemExit('Dependency installation changed tracked panel source')
     run(['bunx', 'bun@1.3.14', 'run', 'build'], args.panel, dict(os.environ, VERSION=args.panel_tag))
     panel = output / 'management.html'
     shutil.copyfile(args.panel / 'dist/index.html', panel)
