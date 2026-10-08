@@ -8,9 +8,10 @@ import (
 
 // Manager coordinates authentication providers.
 type Manager struct {
-	mu              sync.RWMutex
-	providers       []Provider
-	credentialOwner CredentialOwner
+	mu                      sync.RWMutex
+	providers               []Provider
+	credentialOwner         CredentialOwner
+	credentialOwnerRequired bool
 }
 
 // NewManager constructs an empty manager.
@@ -102,6 +103,19 @@ func (m *Manager) SetProvidersAndCredentialOwner(providers []Provider, owner Cre
 	defer m.mu.Unlock()
 	m.providers = append([]Provider(nil), providers...)
 	m.credentialOwner = owner
+	if owner != nil {
+		m.credentialOwnerRequired = true
+	}
+}
+
+// CredentialOwnerAvailable reports whether the configured owner remains installed.
+func (m *Manager) CredentialOwnerAvailable() bool {
+	if m == nil {
+		return false
+	}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.credentialOwner != nil
 }
 
 // BindAcceptedCredential validates configured ownership without rerunning frontend authentication.
@@ -111,8 +125,12 @@ func (m *Manager) BindAcceptedCredential(ctx context.Context, r *http.Request, a
 	}
 	m.mu.RLock()
 	owner := m.credentialOwner
+	required := m.credentialOwnerRequired
 	m.mu.RUnlock()
 	if owner == nil {
+		if required {
+			return nil, &AuthError{Code: "profile_owner_unavailable", Message: "Configured credential owner is unavailable", StatusCode: 503}
+		}
 		return accepted, nil
 	}
 	return owner.Bind(ctx, r, accepted)

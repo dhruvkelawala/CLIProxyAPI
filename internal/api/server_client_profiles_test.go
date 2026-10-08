@@ -114,7 +114,7 @@ func TestManagementClientProfileContract(t *testing.T) {
 			t.Fatalf("unauthenticated %s=%d", path, rec.Code)
 		}
 	}
-	if got := f.request(t, "GET", "/client-profiles/capabilities", "", 200); got["enforcement"] != false {
+	if got := f.request(t, "GET", "/client-profiles/capabilities", "", 200); got["enforcement"] != true {
 		t.Fatal(got)
 	}
 	ref := f.enroll(t)
@@ -124,7 +124,7 @@ func TestManagementClientProfileContract(t *testing.T) {
 	f.request(t, "POST", "/client-profiles/preview", fmt.Sprintf(`{"profile_ref":%q}`, profileRef), 200)
 	key := f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"T3 key","profile_ref":%q,"api_key":"synthetic-client-key"}`, profileRef), 200)["result"].(map[string]any)
 	keyRef := key["key_ref"].(string)
-	f.business(t, "synthetic-client-key", 503)
+	f.business(t, "synthetic-client-key", 200)
 	f.business(t, "synthetic-legacy-key", 200)
 	if profileRef == keyRef || profileRef == ref || keyRef == ref {
 		t.Fatal("identities conflated")
@@ -140,7 +140,7 @@ func TestManagementClientProfileContract(t *testing.T) {
 	oldETag := f.etag
 	f.request(t, "PUT", "/client-profile-keys/"+keyRef, `{"api_key":"synthetic-rotated-key"}`, 200)
 	f.business(t, "synthetic-client-key", 401)
-	f.business(t, "synthetic-rotated-key", 503)
+	f.business(t, "synthetic-rotated-key", 200)
 	current := f.etag
 	f.etag = oldETag
 	f.request(t, "PUT", "/client-profiles/"+profileRef, `{"label":"stale","policies":`+policies+`}`, 412)
@@ -297,7 +297,7 @@ func TestManagementClientProfileLastKeyDeletionFailsClosed(t *testing.T) {
 	if result["error"].(map[string]any)["code"] != "last_client_key" {
 		t.Fatal(result)
 	}
-	f.business(t, "synthetic-client-key", 503)
+	f.business(t, "synthetic-client-key", 200)
 }
 
 func TestManagementClientProfileProgrammaticInvalidConfiguration(t *testing.T) {
@@ -366,11 +366,11 @@ func TestManagementClientProfileProgrammaticRepairAndLegacy(t *testing.T) {
 	if !s.UpdateClientsContext(context.Background(), valid) {
 		t.Fatal("valid repair rejected")
 	}
-	check("/synthetic-ws", 200)
+	check("/synthetic-ws", 503)
 	if s.UpdateClientsContext(context.Background(), cfg) {
 		t.Fatal("invalid reload accepted")
 	}
-	check("/synthetic-ws", 200)
+	check("/synthetic-ws", 503)
 	legacy := valid.CloneForRuntime()
 	legacy.ClientProfiles = nil
 	legacy.ClientProfileKeys = nil
@@ -436,12 +436,12 @@ func (*shipExclusiveFrontendProvider) Identifier() string { return "ship-exclusi
 func (*shipExclusiveFrontendProvider) Authenticate(ctx context.Context, r *http.Request) (*sdkaccess.Result, *sdkaccess.AuthError) {
 	return &sdkaccess.Result{Provider: "ship-exclusive", Principal: "untrusted-plugin-principal", Metadata: map[string]string{clientprofiles.BindingMetadataKey: `{"bound":false}`}}, nil
 }
-func TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding(t *testing.T) {
+func TestClientProfileEnforcementExclusiveFrontendBindingAndRevocation(t *testing.T) {
 	f := newProfileAPI(t)
 	ref := f.enroll(t)
 	p := f.request(t, "POST", "/client-profiles", fmt.Sprintf(`{"label":"strict","policies":{"claude":{"mode":"only","account_ref":%q},"codex":{"mode":"automatic"}}}`, ref), 200)["result"].(map[string]any)
 	k := f.request(t, "POST", "/client-profile-keys", fmt.Sprintf(`{"label":"strict","profile_ref":%q,"api_key":"synthetic-client-key"}`, p["profile_ref"]), 200)["result"].(map[string]any)
-	f.business(t, "synthetic-client-key", 503)
+	f.business(t, "synthetic-client-key", 200)
 	sdkaccess.RegisterProvider("ship-exclusive", &shipExclusiveFrontendProvider{})
 	sdkaccess.SetExclusiveProvider("ship-exclusive")
 	t.Cleanup(func() { sdkaccess.ClearExclusiveProvider(); sdkaccess.UnregisterProvider("ship-exclusive") })
@@ -456,9 +456,9 @@ func TestShipExclusiveFrontendMustNotBypassStrictOrRevokedBinding(t *testing.T) 
 			t.Errorf("profile security contract bypass: got %d want %d", rec.Code, want)
 		}
 	}
-	check(503)
+	check(200)
 	f.server.accessManager.SetProviders(nil)
-	check(503)
+	check(200)
 	f.server.accessManager.SetProviders(sdkaccess.RegisteredProviders())
 	f.request(t, "DELETE", "/client-profile-keys/"+k["key_ref"].(string), "", 200)
 	check(401)

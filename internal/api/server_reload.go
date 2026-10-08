@@ -24,6 +24,9 @@ func (s *Server) applyAccessConfig(oldCfg, newCfg *config.Config) bool {
 	if s == nil || s.accessManager == nil || newCfg == nil {
 		return false
 	}
+	if s.handlers != nil && s.handlers.AuthManager != nil {
+		s.handlers.AuthManager.SetConfigSnapshot(newCfg)
+	}
 	if _, err := access.ApplyAccessProviders(s.accessManager, oldCfg, newCfg); err != nil {
 		return false
 	}

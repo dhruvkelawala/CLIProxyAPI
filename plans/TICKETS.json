@@ -23,7 +23,9 @@
       "CPA-001"
     ],
     "plan": "plans/002-client-profile-contract.md",
-    "status": "IMPLEMENTED_PENDING_VERIFICATION"
+    "status": "DONE",
+    "pullRequest": "https://github.com/dhruvkelawala/CLIProxyAPI/pull/7",
+    "mergeCommit": "ac9202277cf354d414d5bb0e8ad21e5688699921"
   },
   {
     "id": "CPA-003",
@@ -37,7 +39,7 @@
       "CPA-002"
     ],
     "plan": "plans/003-enforce-account-only.md",
-    "status": "TODO"
+    "status": "IMPLEMENTED_PENDING_VERIFICATION"
   },
   {
     "id": "CPA-004",

@@ -33,7 +33,7 @@ func TestClientProfileAccessReload(t *testing.T) {
 	}
 	Register(cfg)
 	cfg.ClientProfiles[0].Policies["claude"] = clientprofiles.Policy{Mode: "automatic"}
-	check(503)
+	check(200)
 	Register(cfg)
 	check(200)
 	cfg.ClientProfiles = nil

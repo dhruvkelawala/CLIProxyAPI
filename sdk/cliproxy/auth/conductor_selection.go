@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/thinking"
 	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
@@ -79,6 +80,7 @@ type authSelectionEligibility struct {
 	requiredKind     string
 	credentialPolicy string
 	disallowFreeAuth bool
+	profileTarget    string
 }
 
 func withRequiredAuthKind(ctx context.Context, requiredKind string) context.Context {
@@ -100,6 +102,7 @@ func credentialPolicyFromContext(ctx context.Context) string {
 func authSelectionEligibilityForRequest(ctx context.Context, opts cliproxyexecutor.Options) authSelectionEligibility {
 	eligibility := authSelectionEligibility{disallowFreeAuth: disallowFreeAuthFromMetadata(opts.Metadata)}
 	if ctx != nil {
+		eligibility.profileTarget, _ = ctx.Value(profileTargetContextKey{}).(string)
 		eligibility.requiredKind, _ = ctx.Value(requiredAuthKindContextKey{}).(string)
 		eligibility.credentialPolicy, _ = ctx.Value(credentialPolicyContextKey{}).(string)
 	}
@@ -108,6 +111,9 @@ func authSelectionEligibilityForRequest(ctx context.Context, opts cliproxyexecut
 
 func (e authSelectionEligibility) allows(auth *Auth) bool {
 	if auth == nil {
+		return false
+	}
+	if e.profileTarget != "" && auth.ID != e.profileTarget {
 		return false
 	}
 	if e.requiredKind != "" && auth.AuthKind() != e.requiredKind {
@@ -989,6 +995,9 @@ func (m *Manager) pickViaPluginScheduler(ctx context.Context, scheduler PluginSc
 		return selected, true, nil
 	}
 
+	if resp.AuthID != "" && clientprofiles.Strict(ctx) {
+		return nil, true, profileExecutionError("profile_scheduler_invalid", "auth")
+	}
 	strategy, okStrategy := builtinSchedulerStrategy(resp.DelegateBuiltin)
 	if !okStrategy {
 		return nil, false, nil
@@ -1818,6 +1827,9 @@ func (m *Manager) pickNextLegacy(ctx context.Context, provider, model string, op
 // SelectAuth selects one credential through the configured scheduling strategy.
 // It does not execute or alter the selected credential's result state.
 func (m *Manager) SelectAuth(ctx context.Context, provider, model string, opts cliproxyexecutor.Options) (*Auth, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_selection")
+	}
 	if m != nil && m.HomeEnabled() {
 		return nil, &Error{Code: "home_unavailable", Message: "legacy auth selection is unavailable while Home is enabled", HTTPStatus: http.StatusServiceUnavailable}
 	}
@@ -1834,6 +1846,9 @@ func (m *Manager) SelectAuth(ctx context.Context, provider, model string, opts c
 // SelectAuthByKind selects one credential of the required kind through the
 // configured scheduling strategy. Credentials of other kinds are skipped.
 func (m *Manager) SelectAuthByKind(ctx context.Context, provider, model, requiredKind string, opts cliproxyexecutor.Options) (*Auth, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_selection")
+	}
 	if m != nil && m.HomeEnabled() {
 		return nil, &Error{Code: "home_unavailable", Message: "legacy auth selection is unavailable while Home is enabled", HTTPStatus: http.StatusServiceUnavailable}
 	}
@@ -1858,6 +1873,9 @@ func (m *Manager) SelectAuthByKind(ctx context.Context, provider, model, require
 
 // SelectAuthWithCredentialPolicy selects one local credential allowed by a fixed policy.
 func (m *Manager) SelectAuthWithCredentialPolicy(ctx context.Context, provider, model, policy string, opts cliproxyexecutor.Options) (*Auth, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_selection")
+	}
 	if m != nil && m.HomeEnabled() {
 		return nil, &Error{Code: "home_unavailable", Message: "legacy auth selection is unavailable while Home is enabled", HTTPStatus: http.StatusServiceUnavailable}
 	}
@@ -1884,6 +1902,9 @@ func (m *Manager) SelectAuthWithCredentialPolicy(ctx context.Context, provider, 
 
 // SelectHomeAuthWithCredentialPolicy selects a policy-constrained Home dispatch while retaining its execution scope.
 func (m *Manager) SelectHomeAuthWithCredentialPolicy(ctx context.Context, provider, model, policy string, opts cliproxyexecutor.Options) (*HomeDispatchSelection, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_selection")
+	}
 	policy = normalizeCredentialPolicy(policy)
 	if policy == "" {
 		return nil, &Error{Code: "invalid_credential_policy", Message: "credential policy is invalid", HTTPStatus: http.StatusBadRequest}
@@ -1934,6 +1955,9 @@ func (m *Manager) SelectHomeAuthWithCredentialPolicy(ctx context.Context, provid
 
 // SelectHomeAuthByKind selects a Home dispatch while retaining its execution scope.
 func (m *Manager) SelectHomeAuthByKind(ctx context.Context, provider string, model string, requiredKind string, opts cliproxyexecutor.Options) (*HomeDispatchSelection, error) {
+	if clientprofiles.Strict(ctx) {
+		return nil, profileExecutionError("profile_protocol_unsupported", "direct_selection")
+	}
 	requiredKind = normalizeAuthKind(requiredKind)
 	if requiredKind == "" {
 		return nil, &Error{Code: "invalid_auth_kind", Message: "required auth kind is invalid", HTTPStatus: http.StatusBadRequest}

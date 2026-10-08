@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/interfaces"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/api/handlers"
@@ -266,6 +267,10 @@ func truncateWebsocketCloseReason(reason string, maxBytes int) string {
 // It accepts `response.create` and `response.append` requests and streams
 // response events back as JSON websocket text messages.
 func (h *OpenAIResponsesAPIHandler) ResponsesWebsocket(c *gin.Context) {
+	if clientprofiles.FromContext(c.Request.Context()).Bound && h.Cfg.CodexResponseSteering {
+		c.AbortWithStatusJSON(503, gin.H{"error": clientprofiles.Denied("profile_protocol_unsupported", "duplex")})
+		return
+	}
 	conn, err := responsesWebsocketUpgrader.Upgrade(c.Writer, c.Request, websocketUpgradeHeaders(c.Request))
 	if err != nil {
 		return
@@ -417,6 +422,12 @@ func (h *OpenAIResponsesAPIHandler) ResponsesWebsocket(c *gin.Context) {
 				}
 				msgType, payload, errReadMessage = websocket.TextMessage, message.Payload, message.Err
 			case <-c.Request.Context().Done():
+				return
+			}
+		}
+		if errReadMessage == nil {
+			if errProfile := h.AuthManager.ValidateClientProfile(c.Request.Context()); errProfile != nil {
+				_, _ = writeResponsesWebsocketError(writer, wsTimelineLog, &interfaces.ErrorMessage{StatusCode: 503, Error: errProfile})
 				return
 			}
 		}

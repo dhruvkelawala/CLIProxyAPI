@@ -19,6 +19,7 @@ import (
 	codexmodels "github.com/router-for-me/CLIProxyAPI/v8/internal/client/codex/models"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/client/grokbuild"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/clienterror"
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/home"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/logging"
@@ -572,6 +573,10 @@ func (s *Server) AttachWebsocketRoute(path string, handler http.Handler) {
 		authMiddleware(c)
 	}
 	finalHandler := func(c *gin.Context) {
+		if clientprofiles.FromContext(c.Request.Context()).Bound {
+			c.AbortWithStatusJSON(503, gin.H{"error": clientprofiles.Invalid("profile_protocol_unsupported", "wsrelay")})
+			return
+		}
 		handler.ServeHTTP(c.Writer, c.Request)
 		c.Abort()
 	}
