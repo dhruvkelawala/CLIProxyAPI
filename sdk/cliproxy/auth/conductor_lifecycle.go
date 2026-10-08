@@ -217,7 +217,7 @@ func (m *Manager) updateInternal(ctx context.Context, base, auth *Auth, mode upd
 	}
 	if mode == updateModeEnrollment {
 		_, supportsEnrollment := m.store.(EnrollmentStore)
-		if !supportsEnrollment || existing.Metadata == nil || existing.Attributes["runtime_only"] == "true" || IsConfigAPIKeyAuth(existing) || shouldSkipPersist(ctx) || IsPluginVirtualAuth(existing) || !clientprofiles.Supported(existing.Provider) {
+		if !supportsEnrollment || existing.Metadata == nil || isRuntimeOnlyAuth(existing) || IsConfigAPIKeyAuth(existing) || shouldSkipPersist(ctx) || IsPluginVirtualAuth(existing) || !clientprofiles.Supported(existing.Provider) {
 			m.mu.Unlock()
 			return nil, clientprofiles.Invalid("enrollment_unsupported", "credential")
 		}
@@ -547,10 +547,8 @@ func (m *Manager) persist(ctx context.Context, auth *Auth) error {
 	if IsConfigAPIKeyAuth(auth) {
 		return nil
 	}
-	if auth.Attributes != nil {
-		if v := strings.ToLower(strings.TrimSpace(auth.Attributes["runtime_only"])); v == "true" {
-			return nil
-		}
+	if isRuntimeOnlyAuth(auth) {
+		return nil
 	}
 	if IsPluginVirtualAuth(auth) {
 		return nil
@@ -600,7 +598,7 @@ func (m *Manager) SupportsAccountEnrollment(id string) bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	a := m.auths[id]
-	if a == nil || !clientprofiles.Supported(a.Provider) || IsConfigAPIKeyAuth(a) || IsPluginVirtualAuth(a) || a.Attributes["runtime_only"] == "true" {
+	if a == nil || !clientprofiles.Supported(a.Provider) || IsConfigAPIKeyAuth(a) || IsPluginVirtualAuth(a) || isRuntimeOnlyAuth(a) {
 		return false
 	}
 	_, ok := m.store.(EnrollmentStore)
@@ -611,4 +609,8 @@ func (m *Manager) SupportsAccountEnrollment(id string) bool {
 		return capability.SupportsEnrollment(a)
 	}
 	return true
+}
+
+func isRuntimeOnlyAuth(auth *Auth) bool {
+	return auth != nil && strings.EqualFold(strings.TrimSpace(auth.Attributes["runtime_only"]), "true")
 }

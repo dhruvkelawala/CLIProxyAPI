@@ -386,7 +386,7 @@ func TestManagementClientProfileProgrammaticRepairAndLegacy(t *testing.T) {
 }
 
 func TestManagementClientProfileUnsupportedTargets(t *testing.T) {
-	for _, kind := range []string{"config_api_key", "plugin_virtual", "runtime_only", "custom_storage", "no_store"} {
+	for _, kind := range []string{"config_api_key", "plugin_virtual", "runtime_only", "runtime_only_upper", "runtime_only_spaced", "runtime_only_mixed", "custom_storage", "no_store"} {
 		t.Run(kind, func(t *testing.T) {
 			f := newProfileAPI(t)
 			ref := "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
@@ -399,8 +399,9 @@ func TestManagementClientProfileUnsupportedTargets(t *testing.T) {
 				a.Attributes = map[string]string{"source": "config:claude[synthetic]", "api_key": "synthetic-upstream-key"}
 			case "plugin_virtual":
 				coreauth.MarkPluginVirtualAuth(a, "synthetic.json", 0)
-			case "runtime_only":
-				a.Attributes = map[string]string{"runtime_only": "true"}
+			case "runtime_only", "runtime_only_upper", "runtime_only_spaced", "runtime_only_mixed":
+				value := map[string]string{"runtime_only": "true", "runtime_only_upper": "TRUE", "runtime_only_spaced": " TRUE ", "runtime_only_mixed": "TrUe"}[kind]
+				a.Attributes = map[string]string{"runtime_only": value}
 			case "custom_storage":
 				a.Storage = &profileUnsupportedStorage{}
 			case "no_store":
@@ -409,6 +410,13 @@ func TestManagementClientProfileUnsupportedTargets(t *testing.T) {
 			}
 			if _, err := f.manager.Register(coreauth.WithSkipPersist(context.Background()), a); err != nil {
 				t.Fatal(err)
+			}
+			inventory := f.request(t, "GET", "/client-profile-accounts", "", 200)["accounts"].([]any)
+			for _, raw := range inventory {
+				account := raw.(map[string]any)
+				if account["account_ref"] == ref && (account["enrollment_supported"] != false || account["target_supported"] != false) {
+					t.Fatal("unsupported imported credential advertised", account)
+				}
 			}
 			result := f.request(t, "POST", "/client-profiles", fmt.Sprintf(`{"label":"unsupported","policies":{"claude":{"mode":"only","account_ref":%q},"codex":{"mode":"automatic"}}}`, ref), 422)
 			if result["error"].(map[string]any)["code"] != "target_unsupported" {

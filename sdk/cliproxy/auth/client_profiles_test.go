@@ -59,3 +59,39 @@ type enrollmentFailureStore struct{ persistFailureStore }
 func (s *enrollmentFailureStore) SaveEnrollment(context.Context, *Auth) (string, error) {
 	return "", errors.New("synthetic enrollment save failure")
 }
+
+func TestClientProfileRuntimeOnlyEnrollmentRejectsWithoutPublication(t *testing.T) {
+	for _, value := range []string{"true", "TRUE", " TRUE ", "TrUe", "\ttrue\n"} {
+		t.Run(value, func(t *testing.T) {
+			store := &runtimeOnlyEnrollmentStore{}
+			manager := NewManager(store, nil, nil)
+			a, err := manager.Register(WithSkipPersist(context.Background()), &Auth{ID: "synthetic-runtime", Provider: "claude", Metadata: map[string]any{"type": "claude"}, Attributes: map[string]string{"runtime_only": value}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if manager.SupportsAccountEnrollment(a.ID) {
+				t.Fatal("runtime-only enrollment advertised")
+			}
+			if enrolled, err := manager.EnrollAccountReference(context.Background(), a.ID); err == nil || enrolled != nil {
+				t.Fatal("runtime-only enrollment succeeded", enrolled, err)
+			}
+			current, _ := manager.GetByID(a.ID)
+			if _, ok := current.Metadata[clientprofiles.AccountRefMetadataKey]; ok {
+				t.Fatal("runtime-only UUID published")
+			}
+			if store.calls != 0 {
+				t.Fatalf("runtime-only store calls=%d", store.calls)
+			}
+		})
+	}
+}
+
+type runtimeOnlyEnrollmentStore struct {
+	persistFailureStore
+	calls int
+}
+
+func (s *runtimeOnlyEnrollmentStore) SaveEnrollment(context.Context, *Auth) (string, error) {
+	s.calls++
+	return "synthetic-saved", nil
+}
