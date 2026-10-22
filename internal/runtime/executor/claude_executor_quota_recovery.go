@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
 	coreauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
@@ -35,7 +36,13 @@ func (e *ClaudeExecutor) QuotaRecovered(ctx context.Context, auth *coreauth.Auth
 		}
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return false, nil
+		var retryAfter *time.Duration
+		now := time.Now()
+		if deadline, ok := helps.ParseRetryAfterHeader(resp.Header.Get("Retry-After"), now); ok && deadline.After(now) {
+			delay := deadline.Sub(now)
+			retryAfter = &delay
+		}
+		return false, statusErr{code: resp.StatusCode, msg: "Claude usage lookup failed", retryAfter: retryAfter}
 	}
 	body, errRead := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 	if errRead != nil {

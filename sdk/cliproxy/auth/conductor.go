@@ -46,6 +46,7 @@ type RequestAuthPreparer interface {
 }
 
 // QuotaRecoveryChecker verifies restored allowance through a provider's read-only usage API.
+// Errors may implement RetryAfter() *time.Duration to defer subsequent usage checks.
 type QuotaRecoveryChecker interface {
 	QuotaRecovered(ctx context.Context, auth *Auth) (bool, error)
 }
@@ -208,7 +209,7 @@ type Manager struct {
 	refreshLoop   *authAutoRefreshLoop
 	// refreshJobs retains queued and running jobs across loop restarts under m.mu.
 	refreshJobs       map[string]*authRefreshJob
-	quotaRecoveryJobs sync.Map
+	quotaRecoveryJobs map[string]*quotaRecoveryJob
 
 	requestPrepareLocks sync.Map
 	// refreshLocks serializes credential refresh per auth ID so concurrent

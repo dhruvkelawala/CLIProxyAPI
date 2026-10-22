@@ -8,7 +8,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const quotaRecoveryInterval = time.Minute
+const (
+	quotaRecoveryInterval   = time.Minute
+	quotaRecoveryMaxBackoff = 15 * time.Minute
+)
+
+type quotaRecoveryJob struct {
+	running   bool
+	delay     time.Duration
+	nextCheck time.Time
+}
 
 func quotaRecoveryCandidate(auth *Auth, now time.Time) bool {
 	return auth != nil && !auth.Disabled && auth.Status != StatusDisabled &&
@@ -32,13 +41,19 @@ func (m *Manager) runQuotaRecovery(ctx context.Context) {
 }
 
 func (m *Manager) checkQuotaRecovery(ctx context.Context, slots chan struct{}) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	now := time.Now()
+	for id, job := range m.quotaRecoveryJobs {
+		if !job.running && !job.nextCheck.After(now) && !quotaRecoveryCandidate(m.auths[id], now) {
+			delete(m.quotaRecoveryJobs, id)
+		}
+	}
 	for _, auth := range m.auths {
 		if ctx.Err() != nil {
 			return
 		}
-		if !quotaRecoveryCandidate(auth, time.Now()) {
+		if !quotaRecoveryCandidate(auth, now) {
 			continue
 		}
 		exec, _ := m.executorLocked(executorKeyFromAuth(auth))
@@ -46,22 +61,32 @@ func (m *Manager) checkQuotaRecovery(ctx context.Context, slots chan struct{}) {
 		if !ok {
 			continue
 		}
-		if _, busy := m.quotaRecoveryJobs.LoadOrStore(auth.ID, struct{}{}); busy {
+		job := m.quotaRecoveryJobs[auth.ID]
+		if job != nil && (job.running || job.nextCheck.After(now)) {
 			continue
 		}
 		select {
 		case slots <- struct{}{}:
 		default:
-			m.quotaRecoveryJobs.Delete(auth.ID)
 			continue
 		}
+		if job == nil {
+			job = &quotaRecoveryJob{}
+			if m.quotaRecoveryJobs == nil {
+				m.quotaRecoveryJobs = make(map[string]*quotaRecoveryJob)
+			}
+			m.quotaRecoveryJobs[auth.ID] = job
+		}
+		job.running = true
 		snapshot := auth.Clone()
 		go func() {
+			var errCheck error
 			defer func() {
+				m.finishQuotaRecovery(job, errCheck)
 				<-slots
-				m.quotaRecoveryJobs.Delete(snapshot.ID)
 			}()
-			recovered, errCheck := checker.QuotaRecovered(ctx, snapshot)
+			var recovered bool
+			recovered, errCheck = checker.QuotaRecovered(ctx, snapshot)
 			if errCheck != nil {
 				log.WithError(errCheck).WithField("auth_id", snapshot.ID).Debug("upstream quota recovery check failed")
 				return
@@ -77,4 +102,16 @@ func (m *Manager) checkQuotaRecovery(ctx context.Context, slots chan struct{}) {
 			}
 		}()
 	}
+}
+
+func (m *Manager) finishQuotaRecovery(job *quotaRecoveryJob, err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	job.running = false
+	job.delay = min(max(job.delay*2, quotaRecoveryInterval), quotaRecoveryMaxBackoff)
+	delay := job.delay
+	if retryAfter := retryAfterFromError(err); retryAfter != nil && *retryAfter > delay {
+		delay = *retryAfter
+	}
+	job.nextCheck = time.Now().Add(delay)
 }

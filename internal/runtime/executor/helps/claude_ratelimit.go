@@ -141,7 +141,7 @@ func parseClaudeRateLimitResetWithFuzz(headers http.Header, now time.Time, minFu
 			if !containsString(rejectedWindows, "retry-after") {
 				rejectedWindows = append(rejectedWindows, "retry-after")
 			}
-			if t, ok := parseRetryAfterHeader(rawRetryAfter, now); ok && t.After(now) {
+			if t, ok := ParseRetryAfterHeader(rawRetryAfter, now); ok && t.After(now) {
 				candidateDeadlines = append(candidateDeadlines, t)
 			}
 		}
@@ -275,7 +275,8 @@ func parseUnixOrTimestamp(raw string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-func parseRetryAfterHeader(raw string, now time.Time) (time.Time, bool) {
+// ParseRetryAfterHeader parses seconds or a timestamp into a retry deadline.
+func ParseRetryAfterHeader(raw string, now time.Time) (time.Time, bool) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return time.Time{}, false

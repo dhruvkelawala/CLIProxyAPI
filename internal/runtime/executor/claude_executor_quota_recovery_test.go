@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +18,105 @@ import (
 	cliproxyexecutor "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/executor"
 	sdktranslator "github.com/router-for-me/CLIProxyAPI/v8/sdk/translator"
 )
+
+func TestClaudeQuotaRecoveryBacksOffAndHonorsRetryAfter(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		status     int
+		retryAfter string
+		wantGaps   []time.Duration
+	}{
+		{name: "exhausted allowance", status: http.StatusOK},
+		{name: "transport failure"},
+		{name: "rate limited without hint", status: http.StatusTooManyRequests},
+		{name: "invalid retry hint", status: http.StatusTooManyRequests, retryAfter: "invalid"},
+		{name: "short retry hint", status: http.StatusTooManyRequests, retryAfter: "120", wantGaps: []time.Duration{2, 2, 4, 8, 15, 15}},
+		{name: "long retry hint", status: http.StatusTooManyRequests, retryAfter: "1800", wantGaps: []time.Duration{30, 30}},
+		{name: "HTTP date retry hint", status: http.StatusServiceUnavailable, retryAfter: "date", wantGaps: []time.Duration{30, 30}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				id := uuid.NewString()
+				var calls, freshCalls atomic.Int32
+				transport := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+					if req.Header.Get("Authorization") == "Bearer sk-ant-oat-test-fresh" {
+						freshCalls.Add(1)
+						return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header),
+							Body: io.NopCloser(strings.NewReader(`{"five_hour":{"utilization":0},"seven_day":{"utilization":0}}`))}, nil
+					}
+					calls.Add(1)
+					if tc.status == 0 {
+						return nil, errors.New("usage API unavailable")
+					}
+					header := make(http.Header)
+					retry := tc.retryAfter
+					if retry == "date" {
+						retry = time.Now().Add(30 * time.Minute).Format(http.TimeFormat)
+					}
+					header.Set("Retry-After", retry)
+					return &http.Response{StatusCode: tc.status, Header: header,
+						Body: io.NopCloser(strings.NewReader(`{"five_hour":{"utilization":100},"seven_day":{"utilization":22}}`))}, nil
+				})
+				ctx := context.WithValue(t.Context(), "cliproxy.roundtripper", http.RoundTripper(transport))
+				manager := coreauth.NewManager(nil, nil, nil)
+				manager.RegisterExecutor(NewClaudeExecutor(&config.Config{}))
+				if _, err := manager.Register(ctx, &coreauth.Auth{ID: id, Provider: "claude", Metadata: map[string]any{"access_token": "sk-ant-oat-test-backoff"}}); err != nil {
+					t.Fatal(err)
+				}
+				freshID := uuid.NewString()
+				if _, err := manager.Register(ctx, &coreauth.Auth{ID: freshID, Provider: "claude", Metadata: map[string]any{"access_token": "sk-ant-oat-test-fresh"}}); err != nil {
+					t.Fatal(err)
+				}
+				retry := 7 * 24 * time.Hour
+				manager.MarkResult(ctx, coreauth.Result{AuthID: id, Provider: "claude", CredentialScope: true,
+					RetryAfter: &retry, Error: &coreauth.Error{HTTPStatus: http.StatusTooManyRequests}})
+				before, _ := manager.GetByID(id)
+				manager.StartAutoRefresh(ctx, time.Minute)
+				defer manager.StopAutoRefresh()
+				synctest.Wait()
+				if int(calls.Load()) != 1 {
+					t.Fatalf("initial usage checks = %d, want 1", calls.Load())
+				}
+				manager.StartAutoRefresh(ctx, time.Minute)
+				synctest.Wait()
+				if int(calls.Load()) != 1 {
+					t.Fatalf("restarting the lifecycle bypassed the retry delay: checks=%d, want 1", calls.Load())
+				}
+				gaps := tc.wantGaps
+				if gaps == nil {
+					gaps = []time.Duration{1, 2, 4, 8, 15, 15}
+				}
+				for i, gap := range gaps {
+					time.Sleep(gap*time.Minute - time.Second)
+					synctest.Wait()
+					if int(calls.Load()) != i+1 {
+						t.Fatalf("usage check retried before %v wait: checks=%d, want %d", gap*time.Minute, calls.Load(), i+1)
+					}
+					time.Sleep(time.Second)
+					synctest.Wait()
+					if int(calls.Load()) != i+2 {
+						t.Fatalf("usage check missing at %v wait: checks=%d, want %d", gap*time.Minute, calls.Load(), i+2)
+					}
+				}
+				after, _ := manager.GetByID(id)
+				if !after.Quota.Exceeded || !after.Unavailable || !after.Quota.NextRecoverAt.Equal(before.Quota.NextRecoverAt) {
+					t.Fatal("usage polling changed the inference cooldown without confirmed recovery")
+				}
+				if freshCalls.Load() != 0 {
+					t.Fatal("usage polling checked a healthy credential")
+				}
+				manager.MarkResult(ctx, coreauth.Result{AuthID: freshID, Provider: "claude", CredentialScope: true,
+					RetryAfter: &retry, Error: &coreauth.Error{HTTPStatus: http.StatusTooManyRequests}})
+				time.Sleep(time.Minute)
+				synctest.Wait()
+				fresh, _ := manager.GetByID(freshID)
+				if freshCalls.Load() != 1 || fresh.Quota.Exceeded || fresh.Unavailable || int(calls.Load()) != len(gaps)+1 {
+					t.Fatal("one account's backoff delayed recovery of a different account")
+				}
+			})
+		})
+	}
+}
 
 func TestClaudeQuotaRecoveryRequiresConfirmedAllowance(t *testing.T) {
 	const available = `{"five_hour":{"utilization":0},"seven_day":{"utilization":0}}`
@@ -44,9 +145,9 @@ func TestClaudeQuotaRecoveryRequiresConfirmedAllowance(t *testing.T) {
 		{name: "reported limit exhausted", body: `{"five_hour":{"utilization":0},"seven_day":{"utilization":0},"limits":[{"percent":100}]}`},
 		{name: "grant confirms exhausted", body: `{"five_hour":{"utilization":0},"seven_day":{"utilization":0},"cedar_ember":{"at_limit":true}}`},
 		{name: "invalid response", body: `not json`, wantError: true},
-		{name: "unauthorized", status: http.StatusUnauthorized, body: available},
-		{name: "rate limited", status: http.StatusTooManyRequests, body: available},
-		{name: "server error", status: http.StatusInternalServerError, body: available},
+		{name: "unauthorized", status: http.StatusUnauthorized, body: available, wantError: true},
+		{name: "rate limited", status: http.StatusTooManyRequests, body: available, wantError: true},
+		{name: "server error", status: http.StatusInternalServerError, body: available, wantError: true},
 		{name: "transport failure", transportError: true, wantError: true},
 		{name: "API key", token: "sk-ant-api-key", wantSkip: true},
 		{name: "custom upstream", baseURL: "https://example.invalid", wantSkip: true},
