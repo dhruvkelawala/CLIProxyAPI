@@ -45,6 +45,11 @@ type RequestAuthPreparer interface {
 	PrepareRequestAuth(ctx context.Context, auth *Auth) (*Auth, error)
 }
 
+// QuotaRecoveryChecker verifies restored allowance through a provider's read-only usage API.
+type QuotaRecoveryChecker interface {
+	QuotaRecovered(ctx context.Context, auth *Auth) (bool, error)
+}
+
 // ExecutionSessionCloser allows executors to release per-session runtime resources.
 type ExecutionSessionCloser interface {
 	CloseExecutionSession(sessionID string)
@@ -202,7 +207,8 @@ type Manager struct {
 	refreshCancel context.CancelFunc
 	refreshLoop   *authAutoRefreshLoop
 	// refreshJobs retains queued and running jobs across loop restarts under m.mu.
-	refreshJobs map[string]*authRefreshJob
+	refreshJobs       map[string]*authRefreshJob
+	quotaRecoveryJobs sync.Map
 
 	requestPrepareLocks sync.Map
 	// refreshLocks serializes credential refresh per auth ID so concurrent

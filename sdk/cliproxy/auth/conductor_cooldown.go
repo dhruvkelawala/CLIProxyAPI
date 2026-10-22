@@ -461,6 +461,10 @@ func dedupeStrings(values []string) []string {
 
 // ResetQuota clears quota/cooldown state for an auth and resumes registry routing.
 func (m *Manager) ResetQuota(ctx context.Context, authID string) (*Auth, []string, error) {
+	return m.resetQuota(ctx, authID, nil)
+}
+
+func (m *Manager) resetQuota(ctx context.Context, authID string, expected *Auth) (*Auth, []string, error) {
 	if m == nil {
 		return nil, nil, nil
 	}
@@ -483,6 +487,11 @@ func (m *Manager) ResetQuota(ctx context.Context, authID string) (*Auth, []strin
 		m.mu.Unlock()
 		return nil, nil, nil
 	}
+	if expected != nil && (ctx.Err() != nil || auth.Generation != expected.Generation ||
+		auth.RegistrationEpoch != expected.RegistrationEpoch || !quotaRecoveryCandidate(auth, now)) {
+		m.mu.Unlock()
+		return nil, nil, nil
+	}
 
 	var cooldownRecordsBefore []CooldownStateRecord
 	trackCooldownState := m.cooldownStore != nil
@@ -496,10 +505,17 @@ func (m *Manager) ResetQuota(ctx context.Context, authID string) (*Auth, []strin
 		}
 		models = append(models, modelKey)
 		if state != nil {
+			if expected != nil && (state.Status == StatusDisabled || !state.Quota.Exceeded ||
+				(state.LastError != nil && state.LastError.HTTPStatus != http.StatusTooManyRequests)) {
+				continue
+			}
 			resetModelState(state, now)
 		}
 	}
-	if clearCooldownStateForAuth(auth, now) {
+	if expected != nil {
+		clearAggregatedAvailability(auth)
+		updateAggregatedAvailability(auth, now)
+	} else if clearCooldownStateForAuth(auth, now) {
 		if len(models) == 0 {
 			models = append(models, registeredModels...)
 		}
