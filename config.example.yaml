@@ -404,19 +404,14 @@ upstream:
     # anything else is dropped so the outgoing set stays one a real client could produce.
     # Other Anthropic-compatible upstreams still forward caller betas verbatim.
     #
-    # Shared Claude CLI fingerprint defaults. Update only after measuring a new Claude Code release.
-    # Unconfirmed clients use this CLI baseline. Verified native Claude Code CLI, sdk-cli,
-    # and VSCode requests preserve their measured entrypoint when the Claude Code version is a
-    # patch release in the configured major/minor line at or above this baseline. Older versions
-    # and newer major/minor lines fall back to the baseline until measured. In legacy mode,
-    # timeout is a fallback and
-    # verified native OS/arch values remain client-supplied. When stabilize-device-profile is
-    # enabled, OS/arch are pinned to the values below and cached profiles remain constrained to
-    # the same exact software baseline rather than learning newer client versions.
+    # Cloaked requests use the measured Claude Code 2.1.322 software profile.
+    # Native detection and stabilization retain the measured 2.1.280 baseline.
+    # Explicit header defaults override both profiles. With stabilize-device-profile,
+    # native profiles also pin OS/arch and do not learn newer software automatically.
     # header-defaults:
-    #   user-agent: "claude-cli/2.1.280 (external, cli)"
-    #   package-version: "0.112.1"
-    #   runtime-version: "v26.3.0"
+    #   user-agent: "claude-cli/2.1.322 (external, cli)"
+    #   package-version: "0.128.0"
+    #   runtime-version: "v26.12.1"
     #   os: "MacOS"
     #   arch: "arm64"
     #   timeout: "600"

@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	defaultClaudeCloakVersion              = "2.1.322"
 	defaultClaudeFingerprintUserAgent      = "claude-cli/2.1.280 (external, cli)"
 	defaultClaudeFingerprintPackageVersion = "0.112.1"
 	defaultClaudeFingerprintRuntimeVersion = "v26.3.0"
@@ -148,6 +149,25 @@ func defaultClaudeDeviceProfile(cfg *config.Config) ClaudeDeviceProfile {
 	if version, ok := parseClaudeCLIVersion(profile.UserAgent); ok {
 		profile.version = version
 		profile.hasVersion = true
+	}
+	return profile
+}
+
+func claudeCloakDeviceProfile(cfg *config.Config) ClaudeDeviceProfile {
+	profile := defaultClaudeDeviceProfile(cfg)
+	var hd config.ClaudeHeaderDefaults
+	if cfg != nil {
+		hd = cfg.ClaudeHeaderDefaults
+	}
+	if strings.TrimSpace(hd.UserAgent) == "" {
+		profile.UserAgent = "claude-cli/" + defaultClaudeCloakVersion + " (external, cli)"
+		profile.version, profile.hasVersion = parseClaudeCLIVersion(profile.UserAgent)
+	}
+	if strings.TrimSpace(hd.PackageVersion) == "" {
+		profile.PackageVersion = "0.128.0"
+	}
+	if strings.TrimSpace(hd.RuntimeVersion) == "" {
+		profile.RuntimeVersion = "v26.12.1"
 	}
 	return profile
 }
@@ -598,8 +618,17 @@ func DefaultClaudeVersion(cfg *config.Config) string {
 	return "2.1.280"
 }
 
+// ClaudeCloakVersion returns the software version emitted for cloaked requests.
+func ClaudeCloakVersion(cfg *config.Config) string {
+	profile := claudeCloakDeviceProfile(cfg)
+	if version, ok := parseClaudeCLIVersion(profile.UserAgent); ok {
+		return strconv.Itoa(version.major) + "." + strconv.Itoa(version.minor) + "." + strconv.Itoa(version.patch)
+	}
+	return defaultClaudeCloakVersion
+}
+
 func ApplyClaudeDefaultDeviceProfileHeaders(r *http.Request, cfg *config.Config) {
-	ApplyClaudeDeviceProfileHeaders(r, defaultClaudeDeviceProfile(cfg))
+	ApplyClaudeDeviceProfileHeaders(r, claudeCloakDeviceProfile(cfg))
 }
 
 func ApplyClaudeLegacyDeviceHeaders(r *http.Request, ginHeaders http.Header, cfg *config.Config, confirmedClaudeCode bool) {
@@ -631,6 +660,7 @@ func ApplyClaudeLegacyDeviceHeaders(r *http.Request, ginHeaders http.Header, cfg
 
 	// Unconfirmed clients must not leak a copied or third-party software profile
 	// into the upstream Claude Code SDK fingerprint.
+	profile = claudeCloakDeviceProfile(cfg)
 	r.Header.Set("X-Stainless-Runtime-Version", profile.RuntimeVersion)
 	r.Header.Set("X-Stainless-Package-Version", profile.PackageVersion)
 	r.Header.Set("X-Stainless-Os", profile.OS)

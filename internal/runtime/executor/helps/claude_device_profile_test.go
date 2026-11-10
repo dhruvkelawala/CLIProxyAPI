@@ -150,7 +150,7 @@ func TestApplyClaudeLegacyDeviceHeadersReplacesInvalidNativeSoftwareSignals(t *t
 
 	ApplyClaudeLegacyDeviceHeaders(request, incoming, nil, true)
 
-	baseline := defaultClaudeDeviceProfile(nil)
+	baseline := ClaudeDeviceProfile{UserAgent: "claude-cli/2.1.322 (external, cli)", PackageVersion: "0.128.0", RuntimeVersion: "v26.12.1"}
 	if got := request.Header.Get("User-Agent"); got != baseline.UserAgent {
 		t.Fatalf("User-Agent = %q, want local baseline %q", got, baseline.UserAgent)
 	}
