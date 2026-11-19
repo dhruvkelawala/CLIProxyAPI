@@ -122,6 +122,17 @@ func (m *Manager) constrainClientProfile(ctx context.Context, providers []string
 	return context.WithValue(ctx, profileTargetContextKey{}, target), opts, nil
 }
 func (m *Manager) validateProfileExecution(ctx context.Context, a *Auth, executor ProviderExecutor, opts cliproxyexecutor.Options) error {
+	return m.validateProfileTarget(ctx, a, executor, opts, true)
+}
+
+// validateProfileRefresh applies the strict identity checks to a credential
+// refresh. A rejected or expired token makes the target look blocked, and the
+// refresh is what repairs it; the retry after it still passes the full guard.
+func (m *Manager) validateProfileRefresh(ctx context.Context, a *Auth, executor ProviderExecutor) error {
+	return m.validateProfileTarget(ctx, a, executor, cliproxyexecutor.Options{}, false)
+}
+
+func (m *Manager) validateProfileTarget(ctx context.Context, a *Auth, executor ProviderExecutor, opts cliproxyexecutor.Options, requireRoutable bool) error {
 	if err := m.ValidateClientProfile(ctx); err != nil {
 		return err
 	}
@@ -154,7 +165,7 @@ func (m *Manager) validateProfileExecution(ctx context.Context, a *Auth, executo
 		return profileExecutionError("target_unavailable", provider)
 	}
 	model, _ := ctx.Value(profileModelContextKey{}).(string)
-	if blocked, _, _ := isAuthBlockedForModel(current, m.selectionModelKeyForAuth(current, model), time.Now()); blocked {
+	if blocked, _, _ := isAuthBlockedForModel(current, m.selectionModelKeyForAuth(current, model), time.Now()); requireRoutable && blocked {
 		return profileExecutionError("target_unavailable", provider)
 	}
 	ref, _ := current.Metadata[clientprofiles.AccountRefMetadataKey].(string)

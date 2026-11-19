@@ -1,6 +1,9 @@
 package executor
 
-import cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+import (
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/runtime/executor/helps"
+	cliproxyauth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
+)
 
 // ForAPIKey binds configuration once after credential selection. Value receivers
 // copy executor configuration while preserving shared transport/session stores.
@@ -9,14 +12,20 @@ func (e CodexExecutor) ForAPIKey() cliproxyauth.ProviderExecutor {
 	return &e
 }
 
+// ForAPIKey scopes only the configuration. The shared stores are allocated
+// before copying so every per-request copy points at the parent's stores.
 func (e *ClaudeExecutor) ForAPIKey() cliproxyauth.ProviderExecutor {
-	return &ClaudeExecutor{
-		cfg:                     e.cfg.ForAPIKey(),
-		requestLogProvider:      e.requestLogProvider,
-		upstreamModelNormalizer: e.upstreamModelNormalizer,
-		oauthProfileFetcher:     e.oauthProfileFetcher,
-		oauthToolAliases:        e.claudeOAuthToolAliasStore(),
+	claudeOAuthToolAliasStoreInitMu.Lock()
+	if e.oauthToolAliases == nil {
+		e.oauthToolAliases = &claudeOAuthToolAliasStore{}
 	}
+	if e.threadBetas == nil {
+		e.threadBetas = &helps.ClaudeThreadBetaStore{}
+	}
+	scoped := *e
+	claudeOAuthToolAliasStoreInitMu.Unlock()
+	scoped.cfg = e.cfg.ForAPIKey()
+	return &scoped
 }
 
 func (e GeminiExecutor) ForAPIKey() cliproxyauth.ProviderExecutor {

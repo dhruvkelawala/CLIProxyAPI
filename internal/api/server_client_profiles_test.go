@@ -68,7 +68,9 @@ func (f *profileAPIFixture) request(t *testing.T, method, path, body string, wan
 	req.RemoteAddr = "127.0.0.1:1234"
 	req.Header.Set("Authorization", "Bearer synthetic-management")
 	req.Header.Set("Content-Type", "application/json")
-	if f.etag != "" {
+	// Like the dashboard, send the profile revision only to profile and key
+	// mutations; /config writes validate If-Match against the config file hash.
+	if f.etag != "" && strings.HasPrefix(path, "/client-profile") {
 		req.Header.Set("If-Match", f.etag)
 	}
 	rec := httptest.NewRecorder()
