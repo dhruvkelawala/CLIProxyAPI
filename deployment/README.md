@@ -10,7 +10,7 @@ Run backend `go test ./...`, `go vet ./...` and `go build -o /tmp/cpa-compile ./
 python3 deployment/package_release.py \
   --backend <backend-checkout> --panel <panel-checkout> \
   --output <new-release-directory> \
-  --backend-tag sumo-v8.0.15-YYYYMMDD.N \
+  --backend-tag sumo-v8.0.79-YYYYMMDD.N \
   --panel-tag sumo-v1.25.4-YYYYMMDD.N
 ```
 

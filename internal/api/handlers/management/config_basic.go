@@ -1,7 +1,6 @@
 package management
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MoeForge/moego/json"
 	"github.com/gin-gonic/gin"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/config"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/util"
@@ -103,11 +103,12 @@ func WriteConfig(path string, data []byte) error {
 	if err := yaml.Unmarshal(data, &doc); err != nil {
 		return err
 	}
+	var commented []config.ArchivedV8Section
 	if len(doc.Content) > 0 && config.IsV8ConfigLayout(doc.Content[0]) {
-		var err error
-		data, _, err = config.NormalizeConfigLayout(data, true)
-		if err != nil {
-			return err
+		var errNorm error
+		data, _, commented, errNorm = config.NormalizeConfigLayoutSilent(data, true)
+		if errNorm != nil {
+			return errNorm
 		}
 	}
 	data = config.NormalizeCommentIndentation(data)
@@ -123,7 +124,11 @@ func WriteConfig(path string, data []byte) error {
 		_ = f.Close()
 		return errSync
 	}
-	return f.Close()
+	if errClose := f.Close(); errClose != nil {
+		return errClose
+	}
+	config.WarnUnrecognizedV8Sections(commented)
+	return nil
 }
 
 func (h *Handler) PutConfigYAML(c *gin.Context) {
@@ -235,8 +240,10 @@ func (h *Handler) PutLogsMaxTotalSizeMB(c *gin.Context) {
 	if value < 0 {
 		value = 0
 	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.cfg.LogsMaxTotalSizeMB = value
-	h.persist(c)
+	h.persistLocked(c)
 }
 
 // ErrorLogsMaxFiles
@@ -255,8 +262,10 @@ func (h *Handler) PutErrorLogsMaxFiles(c *gin.Context) {
 	if value < 0 {
 		value = 10
 	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.cfg.ErrorLogsMaxFiles = value
-	h.persist(c)
+	h.persistLocked(c)
 }
 
 // Request log
@@ -341,8 +350,10 @@ func (h *Handler) PutRoutingStrategy(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid strategy"})
 		return
 	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.cfg.Routing.Strategy = normalized
-	h.persist(c)
+	h.persistLocked(c)
 }
 
 // Proxy URL
@@ -351,6 +362,8 @@ func (h *Handler) PutProxyURL(c *gin.Context) {
 	h.updateStringField(c, func(v string) { h.cfg.ProxyURL = v })
 }
 func (h *Handler) DeleteProxyURL(c *gin.Context) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.cfg.ProxyURL = ""
-	h.persist(c)
+	h.persistLocked(c)
 }

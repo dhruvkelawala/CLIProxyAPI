@@ -64,7 +64,7 @@ def main():
                 tar.addfile(info, content)
     manifest = {
         'schema_version': 1, 'platform': 'darwin/arm64',
-        'backend': {'repository': 'dhruvkelawala/CLIProxyAPI', 'commit': backend_commit, 'tag': args.backend_tag, 'upstream_base': 'v8.0.15'},
+        'backend': {'repository': 'dhruvkelawala/CLIProxyAPI', 'commit': backend_commit, 'tag': args.backend_tag, 'upstream_base': 'v8.0.79'},
         'panel': {'repository': 'dhruvkelawala/Cli-Proxy-API-Management-Center', 'commit': panel_commit, 'tag': args.panel_tag, 'upstream_base': 'v1.25.4'},
         'builder': {'go': subprocess.check_output(['go', 'version'], text=True).strip(), 'bun': '1.3.14', 'cgo': True, 'model_catalog': 'committed source, no updater during build'},
         'files': {p.name: {'sha256': digest(p), 'bytes': p.stat().st_size} for p in (binary, panel, panel_license, archive)}

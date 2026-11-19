@@ -108,3 +108,21 @@ func TestSessionAffinityLookupIndependentCallers(t *testing.T) {
 		t.Fatalf("independent caller bindings: id=%s status=%s", id, status)
 	}
 }
+
+func TestSessionAffinityNeverModeBindingIsCallerScoped(t *testing.T) {
+	s := NewSessionAffinitySelector(&RoundRobinSelector{})
+	defer s.Stop()
+	s.matcher = nil
+	options := func(scope string) executor.Options {
+		return executor.Options{Headers: http.Header{"X-Claude-Code-Session-Id": {"shared"}}, Metadata: map[string]any{executor.CallerScopeMetadataKey: scope}}
+	}
+	if _, err := s.Pick(context.Background(), "claude", "model", options("client-a"), []*Auth{{ID: "a", Provider: "claude", Status: StatusActive}}); err != nil {
+		t.Fatal(err)
+	}
+	if got, ok := s.boundAuthForRequest([]string{"claude"}, "model", options("client-a")); !ok || got != "a" {
+		t.Fatalf("owner lookup = %q, %v; want a", got, ok)
+	}
+	if got, ok := s.boundAuthForRequest([]string{"claude"}, "model", options("client-b")); ok {
+		t.Fatalf("another caller observed binding %q", got)
+	}
+}

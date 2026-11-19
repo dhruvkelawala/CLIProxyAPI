@@ -22,6 +22,9 @@ func TestScopedClaudeExecutorsShareLazyAliasState(t *testing.T) {
 				scope = func() *ClaudeExecutor { return kimi.ForAPIKey().(*KimiExecutor).ClaudeExecutor }
 			}
 			first, second := scope(), scope()
+			if first.threadBetas == nil || first.threadBetas != second.threadBetas || first.threadBetas != original.threadBetas {
+				t.Fatal("scoped executors must share the parent's thread-beta store")
+			}
 			first.claudeOAuthToolAliasStore().save([]string{"message:one"}, map[string]string{"original": "alias"})
 			if aliases, ok := second.claudeOAuthToolAliasStore().load([]string{"message:one"}); !ok || aliases["original"] != "alias" {
 				t.Fatal("separate scoped executors lost lazy shared alias state")

@@ -27,10 +27,15 @@ func TestQuotaRecoveryDiscardsStaleObservations(t *testing.T) {
 			case "new rejection":
 				manager.MarkResult(ctx, failure)
 			case "credential replaced":
-				if _, err := manager.Register(ctx, &Auth{ID: id, Provider: "claude"}); err != nil {
+				replaced, err := manager.Register(ctx, &Auth{ID: id, Provider: "claude"})
+				if err != nil {
 					t.Fatal(err)
 				}
-				manager.MarkResult(ctx, failure)
+				// A rejection from the replacement carries its registration identity.
+				replacementFailure := failure
+				replacementFailure.RegistrationEpoch = replaced.RegistrationEpoch
+				replacementFailure.CredentialVersion = replaced.CredentialVersion
+				manager.MarkResult(ctx, replacementFailure)
 			case "cancelled lookup":
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithCancel(ctx)
