@@ -41,9 +41,10 @@ func (m *Manager) ClientProfileAccounts() []clientprofiles.Account {
 	if m == nil {
 		return inventory
 	}
+	now := time.Now()
 	for _, a := range m.List() {
 		ref, _ := a.Metadata[clientprofiles.AccountRefMetadataKey].(string)
-		available := !a.Disabled && !a.Unavailable && a.Status != StatusDisabled
+		available := !a.Disabled && a.Status != StatusDisabled && !accountLevelUnavailable(a, now)
 		enrollment := m.SupportsAccountEnrollment(a.ID)
 		supported := enrollment && executorKeyFromAuth(a) == a.Provider
 		label := a.Label
@@ -69,6 +70,15 @@ func (m *Manager) ClientProfileAccounts() []clientprofiles.Account {
 		}
 	}
 	return inventory
+}
+
+// accountLevelUnavailable reads the account-wide Unavailable flag the way the
+// scheduler does: it blocks only while its recovery time is still ahead, or
+// when it carries no recovery time at all. A 429 leaves the flag set until a
+// success clears it, and an Only profile cannot send that success elsewhere.
+func accountLevelUnavailable(a *Auth, now time.Time) bool {
+	blocked, _, _ := availabilityBlock(a.Unavailable, false, a.NextRetryAfter, a.Quota.NextRecoverAt, now)
+	return blocked
 }
 
 func (m *Manager) constrainClientProfile(ctx context.Context, providers []string, model string, opts cliproxyexecutor.Options) (context.Context, cliproxyexecutor.Options, error) {
@@ -161,7 +171,7 @@ func (m *Manager) validateProfileTarget(ctx context.Context, a *Auth, executor P
 	if !exists || current == nil {
 		return profileExecutionError("target_removed", provider)
 	}
-	if current.Disabled || current.Unavailable || current.Status == StatusDisabled {
+	if current.Disabled || current.Status == StatusDisabled || accountLevelUnavailable(current, time.Now()) {
 		return profileExecutionError("target_unavailable", provider)
 	}
 	model, _ := ctx.Value(profileModelContextKey{}).(string)
