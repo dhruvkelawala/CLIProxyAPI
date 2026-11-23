@@ -13,7 +13,63 @@ import (
 const AccountRefMetadataKey = "account_ref"
 const BindingMetadataKey = "client_profile_binding"
 
-func Providers() []string { return []string{"claude", "codex"} }
+func Providers() []string { return []string{"claude", "codex", "antigravity"} }
+
+// requiredProviders are the providers of the first profile contract. Every
+// profile names them. Providers added later are optional and default to
+// Automatic, so profiles and clients from before they existed keep working.
+func requiredProviders() []string { return []string{"claude", "codex"} }
+
+// WithDefaultPolicies gives every optional provider the map leaves out an
+// Automatic policy. A map missing a required provider comes back unchanged, so
+// validation still rejects it.
+func WithDefaultPolicies(policies map[string]Policy) map[string]Policy {
+	if !hasRequiredPolicies(policies) {
+		return policies
+	}
+	filled := make(map[string]Policy, len(Providers()))
+	for provider, policy := range policies {
+		filled[provider] = policy
+	}
+	for _, provider := range Providers() {
+		if _, ok := filled[provider]; !ok {
+			filled[provider] = Policy{Mode: "automatic"}
+		}
+	}
+	return filled
+}
+
+// WithSavedPolicies is WithDefaultPolicies for an update: an optional provider
+// the update leaves out keeps its saved rule. Clients from before a provider
+// existed cannot send its rule, and their edits must not clear it.
+func WithSavedPolicies(update, saved map[string]Policy) map[string]Policy {
+	if !hasRequiredPolicies(update) {
+		return update
+	}
+	merged := WithDefaultPolicies(update)
+	for provider, policy := range saved {
+		if _, sent := update[provider]; !sent && Supported(provider) {
+			merged[provider] = policy
+		}
+	}
+	return merged
+}
+
+func hasRequiredPolicies(policies map[string]Policy) bool {
+	for _, provider := range requiredProviders() {
+		if _, ok := policies[provider]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// FillDefaultPolicies applies WithDefaultPolicies to each profile in place.
+func FillDefaultPolicies(profiles []Profile) {
+	for i := range profiles {
+		profiles[i].Policies = WithDefaultPolicies(profiles[i].Policies)
+	}
+}
 
 type Policy struct {
 	Mode       string `json:"mode" yaml:"mode"`
@@ -83,7 +139,7 @@ func Validate(profiles []Profile, keys []Key, apiKeys []string) error {
 			return Invalid("invalid_label", p.Ref)
 		}
 		labels[p.Label] = true
-		if len(p.Policies) != len(Providers()) {
+		if !hasRequiredPolicies(p.Policies) {
 			return Invalid("missing_provider_policy", p.Ref)
 		}
 		for provider, policy := range p.Policies {
@@ -200,10 +256,7 @@ func Binding(profiles []Profile, keys []Key, principal string) (Snapshot, error)
 			for _, p := range profiles {
 				if p.Ref == key.ProfileRef {
 					snapshot.ProfileRevision = p.Revision
-					snapshot.Policies = make(map[string]Policy, len(p.Policies))
-					for provider, policy := range p.Policies {
-						snapshot.Policies[provider] = policy
-					}
+					snapshot.Policies = WithDefaultPolicies(p.Policies)
 					if err := Validate([]Profile{p}, nil, nil); err != nil {
 						return snapshot, err
 					}
