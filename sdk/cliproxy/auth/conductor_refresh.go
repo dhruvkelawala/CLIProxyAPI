@@ -1723,11 +1723,9 @@ func (m *Manager) refreshAuthForRequestAtVersion(ctx context.Context, id, failed
 	if credentialVersion != 0 && err != nil && ctx != nil && ctx.Err() != nil && !codex.IsRefreshOutcomeUnknown(err) {
 		return nil, ctx.Err()
 	}
+	// A refresh that returns another identity is never merged into this credential.
 	if err == nil {
 		if errProfile := validateProfileReplacement(ctx, base, updated); errProfile != nil {
-			return nil, errProfile
-		}
-		if errProfile := m.validateProfileRefresh(ctx, base, exec); errProfile != nil {
 			return nil, errProfile
 		}
 	}
@@ -2086,6 +2084,14 @@ func (m *Manager) refreshAuthForRequestAtVersion(ctx context.Context, id, failed
 	}
 	if targetAuth != nil && len(projections) > 0 {
 		registry.GetGlobalRegistry().ApplyClientModelProjections(id, regEpoch, targetAuth.Generation, projections)
+	}
+	// The client's profile may have changed while the provider refreshed. Check it only
+	// now: the rotated tokens belong to the account and are saved above even when this
+	// request is refused, because the provider may already have retired the old ones.
+	if err == nil {
+		if errProfile := m.validateProfileRefresh(ctx, saved, exec); errProfile != nil {
+			return nil, errProfile
+		}
 	}
 	return saved.Clone(), nil
 }

@@ -418,6 +418,8 @@ type refreshProfileRecorder struct {
 	*routingRecorder
 	refreshed      bool
 	changeProvider bool
+	// duringRefresh runs after the provider has rotated the token.
+	duringRefresh func()
 }
 
 func (r *refreshProfileRecorder) Refresh(_ context.Context, a *auth.Auth) (*auth.Auth, error) {
@@ -430,7 +432,44 @@ func (r *refreshProfileRecorder) Refresh(_ context.Context, a *auth.Auth) (*auth
 	r.routingRecorder.mu.Lock()
 	r.routingRecorder.failA = false
 	r.routingRecorder.mu.Unlock()
+	if r.duringRefresh != nil {
+		r.duringRefresh()
+	}
 	return updated, nil
+}
+
+// A client key revoked while the provider refreshes must refuse the request,
+// but the rotated token belongs to the account, not the client: it is saved.
+// Dropping it would strand the account on a refresh token the provider has
+// already invalidated.
+func TestClientProfileEnforcementRefreshKeepsRotatedTokenWhenDenied(t *testing.T) {
+	f := newEnforcementFixture(t)
+	a, _ := f.manager.GetByID("fixture-a")
+	a.Metadata["access_token"] = "synthetic-expired"
+	a.Metadata["refresh_token"] = "synthetic-refresh"
+	a.Metadata["expired"] = "2030-01-01T00:00:00Z"
+	_, _ = f.manager.Update(auth.WithSkipPersist(context.Background()), a)
+	r := &refreshProfileRecorder{routingRecorder: f.recorder}
+	r.duringRefresh = func() {
+		cfg := f.cfg.CloneForRuntime()
+		cfg.ClientProfileKeys = nil
+		f.manager.SetConfig(cfg)
+	}
+	f.manager.RegisterExecutor(r)
+	f.recorder.failAccountA(401)
+	if err := f.call(f.ctx, "execute", "gpt-fixture-main", []string{"codex"}, executor.Options{}); err == nil {
+		t.Fatal("request on a revoked key succeeded")
+	}
+	if !r.refreshed {
+		t.Fatal("credential was not refreshed")
+	}
+	saved, _ := f.manager.GetByID("fixture-a")
+	if saved.Metadata["access_token"] != "synthetic-refreshed" {
+		t.Fatalf("rotated token discarded: %v", saved.Metadata["access_token"])
+	}
+	if err := onlyAccount(f.recorder.snapshot(), "fixture-a"); err != nil {
+		t.Fatal(err)
+	}
 }
 func TestClientProfileEnforcementRefresh(t *testing.T) {
 	for _, kind := range []string{"execute", "stream", "count"} {
@@ -828,4 +867,67 @@ func TestClientProfileEnforcementAntigravityOnly(t *testing.T) {
 	if err := onlyAccount(f.recorder.snapshot(), "fixture-a"); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// inflightRefreshRecorder refreshes its token in the middle of Execute, the way
+// the Antigravity executor does, through the manager's refresh coordinator.
+type inflightRefreshRecorder struct {
+	*routingRecorder
+	refreshed     bool
+	beforeRefresh func()
+	duringRefresh func()
+}
+
+func (r *inflightRefreshRecorder) Execute(ctx context.Context, a *auth.Auth, req executor.Request, opts executor.Options) (executor.Response, error) {
+	if r.beforeRefresh != nil {
+		r.beforeRefresh()
+	}
+	_, err := auth.RefreshExecutionAuth(ctx, a, func(_ context.Context, current *auth.Auth) (*auth.Auth, error) {
+		r.refreshed = true
+		updated := current.Clone()
+		updated.Metadata["access_token"] = "synthetic-inflight"
+		if r.duringRefresh != nil {
+			r.duringRefresh()
+		}
+		return updated, nil
+	})
+	if err != nil {
+		return executor.Response{}, err
+	}
+	return r.routingRecorder.Execute(ctx, a, req, opts)
+}
+
+func TestClientProfileEnforcementInflightRefresh(t *testing.T) {
+	revoke := func(f enforcementFixture) func() {
+		return func() {
+			cfg := f.cfg.CloneForRuntime()
+			cfg.ClientProfileKeys = nil
+			f.manager.SetConfig(cfg)
+		}
+	}
+	t.Run("revoked before refresh", func(t *testing.T) {
+		f := newEnforcementFixture(t)
+		r := &inflightRefreshRecorder{routingRecorder: f.recorder}
+		r.beforeRefresh = revoke(f)
+		f.manager.RegisterExecutor(r)
+		if err := f.call(f.ctx, "execute", "gpt-fixture-main", []string{"codex"}, executor.Options{}); err == nil {
+			t.Fatal("request on a revoked key succeeded")
+		}
+		if r.refreshed {
+			t.Fatal("refreshed a credential for a revoked key")
+		}
+	})
+	t.Run("revoked during refresh", func(t *testing.T) {
+		f := newEnforcementFixture(t)
+		r := &inflightRefreshRecorder{routingRecorder: f.recorder}
+		r.duringRefresh = revoke(f)
+		f.manager.RegisterExecutor(r)
+		if err := f.call(f.ctx, "execute", "gpt-fixture-main", []string{"codex"}, executor.Options{}); err == nil {
+			t.Fatal("request on a revoked key succeeded")
+		}
+		saved, _ := f.manager.GetByID("fixture-a")
+		if saved.Metadata["access_token"] != "synthetic-inflight" {
+			t.Fatalf("rotated token discarded: %v", saved.Metadata["access_token"])
+		}
+	})
 }

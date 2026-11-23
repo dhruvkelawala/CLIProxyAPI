@@ -71,12 +71,26 @@ func (m *Manager) withExecutionAuthRefresh(ctx context.Context, opts executionAu
 		if errCtx := callCtx.Err(); errCtx != nil {
 			return nil, errCtx
 		}
+		// Client-profile guards, as for a refresh between attempts: the client must
+		// still be allowed this credential before tokens rotate, the result must be
+		// the same identity, and a profile change during the refresh refuses the
+		// request only after the rotated tokens are saved.
+		profileExec := m.executorFor(executorKeyFromAuth(auth))
+		if errProfile := m.validateProfileRefresh(callCtx, auth, profileExec); errProfile != nil {
+			return nil, errProfile
+		}
 
 		id := strings.TrimSpace(auth.ID)
 		if opts.ephemeral || id == "" || (m.HomeEnabled() && auth.RegistrationEpoch == 0) {
 			updated, errRefresh := refresh(callCtx, auth)
 			if errRefresh != nil {
 				return nil, errRefresh
+			}
+			if errProfile := validateProfileReplacement(callCtx, auth, updated); errProfile != nil {
+				return nil, errProfile
+			}
+			if errProfile := m.validateProfileRefresh(callCtx, auth, profileExec); errProfile != nil {
+				return nil, errProfile
 			}
 			if updated != nil && opts.onAuthUpdated != nil {
 				opts.onAuthUpdated(updated.Clone())
@@ -115,6 +129,9 @@ func (m *Manager) withExecutionAuthRefresh(ctx context.Context, opts executionAu
 			if errRefresh != nil {
 				return nil, errRefresh
 			}
+			if errProfile := validateProfileReplacement(callCtx, auth, updated); errProfile != nil {
+				return nil, errProfile
+			}
 			if updated != nil && opts.onAuthUpdated != nil {
 				opts.onAuthUpdated(updated.Clone())
 			}
@@ -141,6 +158,9 @@ func (m *Manager) withExecutionAuthRefresh(ctx context.Context, opts executionAu
 		updated, errRefresh := refresh(callCtx, base.Clone())
 		if errRefresh != nil {
 			return nil, errRefresh
+		}
+		if errProfile := validateProfileReplacement(callCtx, base, updated); errProfile != nil {
+			return nil, errProfile
 		}
 		if updated == nil {
 			if opts.onAuthUpdated != nil {
@@ -215,6 +235,9 @@ func (m *Manager) withExecutionAuthRefresh(ctx context.Context, opts executionAu
 			if len(projections) > 0 {
 				registry.GetGlobalRegistry().ApplyClientModelProjections(id, regEpoch, saved.Generation, projections)
 			}
+		}
+		if errProfile := m.validateProfileRefresh(callCtx, saved, profileExec); errProfile != nil {
+			return nil, errProfile
 		}
 		if opts.onAuthUpdated != nil {
 			opts.onAuthUpdated(saved.Clone())
