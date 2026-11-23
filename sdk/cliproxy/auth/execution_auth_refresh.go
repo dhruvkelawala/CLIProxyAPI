@@ -163,6 +163,9 @@ func (m *Manager) withExecutionAuthRefresh(ctx context.Context, opts executionAu
 			return nil, errProfile
 		}
 		if updated == nil {
+			if errProfile := m.validateProfileRefresh(callCtx, latest, profileExec); errProfile != nil {
+				return nil, errProfile
+			}
 			if opts.onAuthUpdated != nil {
 				opts.onAuthUpdated(latest.Clone())
 			}

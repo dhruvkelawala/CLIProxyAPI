@@ -874,6 +874,7 @@ func TestClientProfileEnforcementAntigravityOnly(t *testing.T) {
 type inflightRefreshRecorder struct {
 	*routingRecorder
 	refreshed     bool
+	noop          bool
 	beforeRefresh func()
 	duringRefresh func()
 }
@@ -884,11 +885,14 @@ func (r *inflightRefreshRecorder) Execute(ctx context.Context, a *auth.Auth, req
 	}
 	_, err := auth.RefreshExecutionAuth(ctx, a, func(_ context.Context, current *auth.Auth) (*auth.Auth, error) {
 		r.refreshed = true
-		updated := current.Clone()
-		updated.Metadata["access_token"] = "synthetic-inflight"
 		if r.duringRefresh != nil {
 			r.duringRefresh()
 		}
+		if r.noop {
+			return nil, nil
+		}
+		updated := current.Clone()
+		updated.Metadata["access_token"] = "synthetic-inflight"
 		return updated, nil
 	})
 	if err != nil {
@@ -928,6 +932,15 @@ func TestClientProfileEnforcementInflightRefresh(t *testing.T) {
 		saved, _ := f.manager.GetByID("fixture-a")
 		if saved.Metadata["access_token"] != "synthetic-inflight" {
 			t.Fatalf("rotated token discarded: %v", saved.Metadata["access_token"])
+		}
+	})
+	t.Run("revoked during a refresh that was not needed", func(t *testing.T) {
+		f := newEnforcementFixture(t)
+		r := &inflightRefreshRecorder{routingRecorder: f.recorder, noop: true}
+		r.duringRefresh = revoke(f)
+		f.manager.RegisterExecutor(r)
+		if err := f.call(f.ctx, "execute", "gpt-fixture-main", []string{"codex"}, executor.Options{}); err == nil {
+			t.Fatal("request on a revoked key succeeded")
 		}
 	})
 }
