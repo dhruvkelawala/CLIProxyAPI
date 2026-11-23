@@ -771,3 +771,24 @@ func TestClientProfileEnforcementPreparationDenial(t *testing.T) {
 		}
 	}
 }
+
+// An account-level 429 leaves Unavailable set until a success clears it. Once its
+// cooldown has passed, an Only profile must reach the account again, as the
+// shared scheduler does; a bare flag with no recovery time still blocks.
+func TestClientProfileEnforcementRecoversAfterCooldown(t *testing.T) {
+	for _, kind := range []string{"execute", "stream", "count"} {
+		t.Run(kind, func(t *testing.T) {
+			f := newEnforcementFixture(t)
+			a, _ := f.manager.GetByID("fixture-a")
+			a.Unavailable = true
+			a.NextRetryAfter = time.Now().Add(-time.Minute)
+			_, _ = f.manager.Update(auth.WithSkipPersist(context.Background()), a)
+			if err := f.call(f.ctx, kind, "gpt-fixture-main", []string{"codex"}, executor.Options{}); err != nil {
+				t.Fatalf("expired cooldown still blocks Only target: %v", err)
+			}
+			if err := onlyAccount(f.recorder.snapshot(), "fixture-a"); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}

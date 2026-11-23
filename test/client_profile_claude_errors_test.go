@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/MoeForge/moego/ojson"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	"github.com/router-for-me/CLIProxyAPI/v8/internal/registry"
 	auth "github.com/router-for-me/CLIProxyAPI/v8/sdk/cliproxy/auth"
-	"github.com/tidwall/gjson"
 )
 
 func TestClientProfileEnforcementClaudeErrorEnvelope(t *testing.T) {
@@ -56,7 +56,7 @@ func TestClientProfileEnforcementClaudeErrorEnvelope(t *testing.T) {
 			"type": "error", "error.type": "api_error", "error.message": "target_unavailable",
 			"error.code": "target_unavailable", "error.field": "claude",
 		} {
-			if got := gjson.GetBytes(body, path).String(); got != want {
+			if got := ojson.GetBytes(body, path).String(); got != want {
 				t.Errorf("%s = %q, want %q", path, got, want)
 			}
 		}
