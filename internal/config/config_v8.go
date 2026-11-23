@@ -10,6 +10,7 @@ import (
 	"sync"
 	"unicode"
 
+	"github.com/router-for-me/CLIProxyAPI/v8/internal/clientprofiles"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
@@ -292,6 +293,7 @@ func (cfg *Config) UnmarshalYAML(node *yaml.Node) error {
 	if errValidate := decoded.Models.Validate(); errValidate != nil {
 		return errValidate
 	}
+	clientprofiles.FillDefaultPolicies(decoded.ClientProfiles)
 	if err := (*Config)(&decoded).ValidateClientProfiles(); err != nil {
 		return err
 	}
@@ -1257,6 +1259,7 @@ func ValidateV8Config(data []byte) error {
 	if errDecode := decoder.Decode(&cfg); errDecode != nil {
 		return errDecode
 	}
+	clientprofiles.FillDefaultPolicies(cfg.ClientProfiles)
 	if err := (*Config)(&cfg).ValidateClientProfiles(); err != nil {
 		return err
 	}

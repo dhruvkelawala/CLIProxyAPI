@@ -15,7 +15,7 @@ func TestClientProfileConfigRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	ref := "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
-	cfg.ClientProfiles = []clientprofiles.Profile{{Ref: ref, Label: "app", Revision: 1, Policies: map[string]clientprofiles.Policy{"claude": {Mode: "only", AccountRef: ref}, "codex": {Mode: "automatic"}}}}
+	cfg.ClientProfiles = []clientprofiles.Profile{{Ref: ref, Label: "app", Revision: 1, Policies: map[string]clientprofiles.Policy{"claude": {Mode: "only", AccountRef: ref}, "codex": {Mode: "automatic"}, "antigravity": {Mode: "automatic"}}}}
 	cfg.ClientProfileKeys = []clientprofiles.Key{{Ref: ref, Label: "key", ProfileRef: ref, Fingerprint: clientprofiles.Fingerprint("synthetic-key"), Revision: 1}}
 	raw, err := yaml.Marshal(cfg)
 	if err != nil {
@@ -89,5 +89,35 @@ func TestClientProfileRevocationValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
+	}
+}
+
+// Profiles saved before Antigravity joined the provider list carry only Claude and
+// Codex policies. They must keep loading, with Antigravity left on Automatic.
+func TestClientProfileConfigLoadsProfilesSavedBeforeAntigravity(t *testing.T) {
+	cfg, err := ParseConfigBytes([]byte("api-keys: [synthetic-key]\nws-auth: true\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ref := "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+	cfg.ClientProfiles = []clientprofiles.Profile{{Ref: ref, Label: "app", Revision: 1, Policies: map[string]clientprofiles.Policy{"claude": {Mode: "only", AccountRef: ref}, "codex": {Mode: "automatic"}}}}
+	raw, err := yaml.Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v8, _, err := NormalizeConfigLayout(raw, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = ValidateV8Config(v8); err != nil {
+		t.Fatal("saved profile rejected:", err)
+	}
+	loaded, err := ParseConfigBytes(v8)
+	if err != nil {
+		t.Fatal("saved profile rejected:", err)
+	}
+	policies := loaded.ClientProfiles[0].Policies
+	if policies["antigravity"] != (clientprofiles.Policy{Mode: "automatic"}) || policies["claude"].Mode != "only" || policies["codex"].Mode != "automatic" {
+		t.Fatalf("policies after load: %+v", policies)
 	}
 }
