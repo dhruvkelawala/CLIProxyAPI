@@ -117,7 +117,7 @@ func (h *Handler) ClientProfiles(c *gin.Context) {
 			h.mu.Unlock()
 			return
 		}
-		p := clientprofiles.Profile{Ref: uuid.NewString(), Label: body.Label, Revision: 1, Policies: body.Policies}
+		p := clientprofiles.Profile{Ref: uuid.NewString(), Label: body.Label, Revision: 1, Policies: clientprofiles.WithDefaultPolicies(body.Policies)}
 		if err := clientprofiles.ValidateTargets(p, h.profileAccountsLocked()); err != nil {
 			profileError(c, 422, err)
 			h.mu.Unlock()
@@ -157,7 +157,7 @@ func (h *Handler) ClientProfiles(c *gin.Context) {
 				h.mu.Unlock()
 				return
 			}
-			p := clientprofiles.Profile{Ref: ref, Label: body.Label, Policies: body.Policies, Revision: next.ClientProfiles[index].Revision + 1}
+			p := clientprofiles.Profile{Ref: ref, Label: body.Label, Policies: clientprofiles.WithDefaultPolicies(body.Policies), Revision: next.ClientProfiles[index].Revision + 1}
 			if err := clientprofiles.ValidateTargets(p, h.profileAccountsLocked()); err != nil {
 				profileError(c, 422, err)
 				h.mu.Unlock()
@@ -183,7 +183,7 @@ func (h *Handler) ClientProfilePreview(c *gin.Context) {
 	if !profileBody(c, &body) {
 		return
 	}
-	p := clientprofiles.Profile{Ref: uuid.NewString(), Label: "preview", Policies: body.Policies}
+	p := clientprofiles.Profile{Ref: uuid.NewString(), Label: "preview", Policies: clientprofiles.WithDefaultPolicies(body.Policies)}
 	if body.ProfileRef != "" {
 		found := false
 		for _, existing := range h.cfg.ClientProfiles {

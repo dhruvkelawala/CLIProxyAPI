@@ -676,3 +676,27 @@ func TestManagementClientProfileRevokedOnlyStartup(t *testing.T) {
 		t.Fatal("derived revoked identity bypass", authErr)
 	}
 }
+
+// A dashboard from before Antigravity sends only the first contract's
+// providers. The profile is saved with Antigravity on Automatic, while a
+// profile missing a required provider is still rejected.
+func TestManagementClientProfileOptionalAntigravity(t *testing.T) {
+	f := newProfileAPI(t)
+	f.request(t, "POST", "/client-profiles", `{"label":"bad","policies":{"antigravity":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 422)
+	result := f.request(t, "POST", "/client-profiles", `{"label":"legacy","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	policies := result["policies"].(map[string]any)
+	if policies["antigravity"].(map[string]any)["mode"] != "automatic" || len(policies) != 3 {
+		t.Fatalf("policies %v", policies)
+	}
+	loaded, err := config.LoadConfig(f.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.ClientProfiles[0].Policies["antigravity"].Mode != "automatic" {
+		t.Fatalf("persisted %+v", loaded.ClientProfiles)
+	}
+	caps := f.request(t, "GET", "/client-profiles/capabilities", "", 200)
+	if fmt.Sprint(caps["providers"]) != "[claude codex antigravity]" {
+		t.Fatalf("providers %v", caps["providers"])
+	}
+}

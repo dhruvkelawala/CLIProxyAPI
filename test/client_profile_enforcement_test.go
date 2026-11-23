@@ -792,3 +792,40 @@ func TestClientProfileEnforcementRecoversAfterCooldown(t *testing.T) {
 		})
 	}
 }
+
+// An Antigravity Only policy keeps every request on the enrolled Antigravity
+// account and fails rather than falling back to the other one.
+func TestClientProfileEnforcementAntigravityOnly(t *testing.T) {
+	f := newEnforcementFixture(t)
+	f.manager.RegisterExecutor(&providerRoutingRecorder{f.recorder, "antigravity"})
+	for _, id := range []string{"fixture-a", "fixture-b"} {
+		a, _ := f.manager.GetByID(id)
+		a.Provider = "antigravity"
+		a.Metadata["type"] = "antigravity"
+		if _, err := f.manager.Update(context.Background(), a); err != nil {
+			t.Fatal(err)
+		}
+		registry.GetGlobalRegistry().RegisterClient(id, "antigravity", []*registry.ModelInfo{{ID: "gemini-fixture-main"}})
+		f.manager.RefreshSchedulerEntry(id)
+	}
+	cfg := f.cfg.CloneForRuntime()
+	cfg.ClientProfiles[0].Policies = map[string]clientprofiles.Policy{"antigravity": {Mode: "only", AccountRef: enforcementRef}, "claude": {Mode: "automatic"}, "codex": {Mode: "automatic"}}
+	f.manager.SetConfig(cfg)
+	snapshot, err := clientprofiles.Binding(cfg.ClientProfiles, cfg.ClientProfileKeys, enforcementKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := clientprofiles.WithBinding(context.Background(), snapshot)
+	for _, kind := range []string{"execute", "stream", "count"} {
+		if err := f.call(ctx, kind, "gemini-fixture-main", []string{"antigravity"}, executor.Options{}); err != nil {
+			t.Fatal(kind, err)
+		}
+	}
+	f.recorder.failAccountA(503)
+	if err := f.call(ctx, "execute", "gemini-fixture-main", []string{"antigravity"}, executor.Options{}); err == nil {
+		t.Fatal("failed Antigravity A succeeded")
+	}
+	if err := onlyAccount(f.recorder.snapshot(), "fixture-a"); err != nil {
+		t.Fatal(err)
+	}
+}

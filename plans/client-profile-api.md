@@ -11,7 +11,7 @@ CPA-003 enables subscription enforcement. Authenticated Only requests resolve a 
 - `account_ref` is a random UUID stored in credential JSON metadata. Enrollment is explicit, never a startup migration. It identifies a credential record, not a vendor subscription.
 - `credential_ref` is an opaque transient handle for enrollment of a currently loaded credential. It changes after filename/runtime-ID changes and is never a policy target.
 
-The canonical YAML paths are `access.client-profiles` and `access.client-profile-keys`. `access.revoked-client-profile-keys` is a profile-owned persisted list of lowercase SHA-256 fingerprints for rotated/deleted keys, never raw values. It is read-only through generic config writes and omitted from JSON projections; sensitive full YAML backup retains it. Older flat layout keys `client-profiles` and `client-profile-keys` round-trip through the existing YAML boundary. Profiles have mandatory rules for both `claude` and `codex`. No omitted rule defaults to Automatic. Unknown providers, missing/unknown modes, invalid UUIDs and an Automatic rule with an account target are rejected. Prefer and fallback are unsupported.
+The canonical YAML paths are `access.client-profiles` and `access.client-profile-keys`. `access.revoked-client-profile-keys` is a profile-owned persisted list of lowercase SHA-256 fingerprints for rotated/deleted keys, never raw values. It is read-only through generic config writes and omitted from JSON projections; sensitive full YAML backup retains it. Older flat layout keys `client-profiles` and `client-profile-keys` round-trip through the existing YAML boundary. Profiles have mandatory rules for both `claude` and `codex`; omitting either is rejected. `antigravity` was added later and is optional: an omitted Antigravity rule is stored and enforced as Automatic, so profiles saved earlier and older dashboards keep working. Unknown providers, missing/unknown modes, invalid UUIDs and an Automatic rule with an account target are rejected. Prefer and fallback are unsupported.
 
 File-backed enrollment supports plain metadata and native Claude/Codex token storage. It privately copies native storage, saves to a sibling temporary file, syncs and renames before manager publication. Other stores must implement the explicit atomic `EnrollmentStore.SaveEnrollment` contract; built-in non-file stores do not yet support enrollment. Custom storage, virtual plugin credentials and configuration API-key credentials are unsupported. The account inventory returns `enrollment_supported` and `target_supported` for the actual loaded record. A caller/imported UUID cannot turn configuration API-key, virtual plugin, runtime-only, custom storage or a nontransactional-store credential into an Only target; it returns `target_unsupported`. These records still participate in global duplicate checks. Unsupported providers still appear in inventory so copied UUIDs cannot hide from duplicate checks.
 
@@ -58,7 +58,7 @@ Mutations reject unrecognized request fields. Enrollment modifies the credential
   "management": true,
   "enforcement": true,
   "strict_requests": "enforced",
-  "providers": ["claude", "codex"],
+  "providers": ["claude", "codex", "antigravity"],
   "modes": ["automatic", "only"],
   "session_behavior": "fresh_session_required",
   "binding_requires": ["websocket_auth_enabled"],
@@ -137,7 +137,7 @@ The user authorized CPA-007 rollout on 2026-10-08. Use the reviewed deployment t
 | Native duplex/steering and realtime/live | Reject all profile-bound sessions, including Automatic, before creating a secret or relaying traffic |
 | Optional wsrelay routes | Reject all profile-bound requests before invoking the attached relay handler |
 | Standalone search, videos and direct manager HTTP/selection APIs | Reject strict requests before selection, acquisition or transport |
-| Providers without a Claude/Codex policy | Reject strict requests explicitly |
+| Providers without a Claude/Codex/Antigravity policy | Reject strict requests explicitly |
 
 Business policy failures return HTTP 503 with `{"error":{"code":"machine_code","field":"optional_field"}}`. Claude messages and count_tokens preserve their Anthropic-compatible envelope and include the same machine-readable fields: `{"type":"error","error":{"type":"api_error","message":"machine_code","code":"machine_code","field":"optional_field"}}`. Claude terminal SSE errors use this envelope in the error event. WebSockets send the OpenAI-style error within an event with `type:"error"` and `status:503`, then terminate the session. Codes include `target_removed`, `target_unavailable`, `duplicate_account_ref`, `provider_mismatch`, `target_unsupported`, `profile_target_changed`, `profile_pin_conflict`, `client_profile_stale`, `profile_owner_unavailable`, `profile_home_unsupported`, `profile_mixed_provider_unsupported`, `profile_provider_unsupported`, `profile_protocol_unsupported`, `profile_plugin_unsupported` and `profile_scheduler_invalid`. Existing upstream, expired-token and model cooldown errors retain their normal envelopes. No policy failure substitutes another subscription.
 

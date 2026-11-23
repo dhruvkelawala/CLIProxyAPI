@@ -13,7 +13,40 @@ import (
 const AccountRefMetadataKey = "account_ref"
 const BindingMetadataKey = "client_profile_binding"
 
-func Providers() []string { return []string{"claude", "codex"} }
+func Providers() []string { return []string{"claude", "codex", "antigravity"} }
+
+// requiredProviders are the providers of the first profile contract. Every
+// profile names them. Providers added later are optional and default to
+// Automatic, so profiles and clients from before they existed keep working.
+func requiredProviders() []string { return []string{"claude", "codex"} }
+
+// WithDefaultPolicies gives every optional provider the map leaves out an
+// Automatic policy. A map missing a required provider comes back unchanged, so
+// validation still rejects it.
+func WithDefaultPolicies(policies map[string]Policy) map[string]Policy {
+	for _, provider := range requiredProviders() {
+		if _, ok := policies[provider]; !ok {
+			return policies
+		}
+	}
+	filled := make(map[string]Policy, len(Providers()))
+	for provider, policy := range policies {
+		filled[provider] = policy
+	}
+	for _, provider := range Providers() {
+		if _, ok := filled[provider]; !ok {
+			filled[provider] = Policy{Mode: "automatic"}
+		}
+	}
+	return filled
+}
+
+// FillDefaultPolicies applies WithDefaultPolicies to each profile in place.
+func FillDefaultPolicies(profiles []Profile) {
+	for i := range profiles {
+		profiles[i].Policies = WithDefaultPolicies(profiles[i].Policies)
+	}
+}
 
 type Policy struct {
 	Mode       string `json:"mode" yaml:"mode"`
@@ -83,8 +116,10 @@ func Validate(profiles []Profile, keys []Key, apiKeys []string) error {
 			return Invalid("invalid_label", p.Ref)
 		}
 		labels[p.Label] = true
-		if len(p.Policies) != len(Providers()) {
-			return Invalid("missing_provider_policy", p.Ref)
+		for _, provider := range requiredProviders() {
+			if _, ok := p.Policies[provider]; !ok {
+				return Invalid("missing_provider_policy", p.Ref)
+			}
 		}
 		for provider, policy := range p.Policies {
 			if !Supported(provider) {
@@ -200,10 +235,7 @@ func Binding(profiles []Profile, keys []Key, principal string) (Snapshot, error)
 			for _, p := range profiles {
 				if p.Ref == key.ProfileRef {
 					snapshot.ProfileRevision = p.Revision
-					snapshot.Policies = make(map[string]Policy, len(p.Policies))
-					for provider, policy := range p.Policies {
-						snapshot.Policies[provider] = policy
-					}
+					snapshot.Policies = WithDefaultPolicies(p.Policies)
 					if err := Validate([]Profile{p}, nil, nil); err != nil {
 						return snapshot, err
 					}

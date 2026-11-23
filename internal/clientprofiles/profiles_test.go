@@ -64,3 +64,18 @@ func TestClientProfileBindingSnapshot(t *testing.T) {
 		t.Fatal("legacy key changed", legacy, err)
 	}
 }
+
+func TestClientProfileAntigravityPolicy(t *testing.T) {
+	ref := "6ea741d4-c122-4c46-924b-c93f15a99f39"
+	p := Profile{Ref: ref, Label: "Gemini app", Policies: map[string]Policy{"claude": {Mode: "automatic"}, "codex": {Mode: "automatic"}, "antigravity": {Mode: "only", AccountRef: ref}}}
+	if err := Validate([]Profile{p}, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	a := Account{AccountRef: ref, Provider: "antigravity", Available: true, TargetSupported: true}
+	if got := Resolve("antigravity", p.Policies["antigravity"], []Account{a}); got != "available" {
+		t.Fatal(got)
+	}
+	if got := Resolve("claude", p.Policies["antigravity"], []Account{a}); got != "provider_mismatch" {
+		t.Fatal(got)
+	}
+}

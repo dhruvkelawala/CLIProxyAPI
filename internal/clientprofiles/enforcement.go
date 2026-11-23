@@ -97,7 +97,7 @@ func ValidateBinding(snapshot Snapshot, profiles []Profile, keys []Key, apiKeys 
 			break
 		}
 		for _, profile := range profiles {
-			if profile.Ref == snapshot.ProfileRef && profile.Revision == snapshot.ProfileRevision && reflect.DeepEqual(profile.Policies, snapshot.Policies) {
+			if profile.Ref == snapshot.ProfileRef && profile.Revision == snapshot.ProfileRevision && reflect.DeepEqual(WithDefaultPolicies(profile.Policies), snapshot.Policies) {
 				return Validate([]Profile{profile}, nil, nil)
 			}
 		}
