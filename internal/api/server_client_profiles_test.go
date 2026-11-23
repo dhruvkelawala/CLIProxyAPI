@@ -700,3 +700,35 @@ func TestManagementClientProfileOptionalAntigravity(t *testing.T) {
 		t.Fatalf("providers %v", caps["providers"])
 	}
 }
+
+// An older dashboard sends only Claude and Codex rules when it renames a
+// profile or edits one of those rules. That must not clear a saved Antigravity
+// Only rule; a dashboard that knows Antigravity clears it explicitly.
+func TestManagementClientProfileUpdateKeepsOmittedAntigravityRule(t *testing.T) {
+	f := newProfileAPI(t)
+	if _, err := f.manager.Register(context.Background(), &coreauth.Auth{ID: "synthetic-ag.json", FileName: "synthetic-ag.json", Provider: "antigravity", Label: "Synthetic Antigravity", Status: coreauth.StatusActive, Metadata: map[string]any{"type": "antigravity", "access_token": "synthetic-oauth-secret"}}); err != nil {
+		t.Fatal(err)
+	}
+	accounts := f.request(t, "GET", "/client-profile-accounts", "", 200)["accounts"].([]any)
+	credential := ""
+	for _, raw := range accounts {
+		if account := raw.(map[string]any); account["provider"] == "antigravity" {
+			credential = account["credential_ref"].(string)
+		}
+	}
+	ref := f.request(t, "POST", "/client-profile-accounts/enroll", fmt.Sprintf(`{"credential_ref":%q}`, credential), 200)["account_ref"].(string)
+	only := fmt.Sprintf(`{"mode":"only","account_ref":%q}`, ref)
+	created := f.request(t, "POST", "/client-profiles", `{"label":"gemini","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"},"antigravity":`+only+`}}`, 200)["result"].(map[string]any)
+	profileRef := created["profile_ref"].(string)
+	antigravity := func(result map[string]any) any {
+		return result["policies"].(map[string]any)["antigravity"].(map[string]any)["mode"]
+	}
+	renamed := f.request(t, "PUT", "/client-profiles/"+profileRef, `{"label":"renamed","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	if antigravity(renamed) != "only" {
+		t.Fatalf("legacy edit cleared Antigravity rule: %v", renamed["policies"])
+	}
+	cleared := f.request(t, "PUT", "/client-profiles/"+profileRef, `{"label":"renamed","policies":{"claude":{"mode":"automatic"},"codex":{"mode":"automatic"},"antigravity":{"mode":"automatic"}}}`, 200)["result"].(map[string]any)
+	if antigravity(cleared) != "automatic" {
+		t.Fatalf("explicit Automatic ignored: %v", cleared["policies"])
+	}
+}

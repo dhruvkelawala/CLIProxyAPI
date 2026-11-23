@@ -157,7 +157,8 @@ func (h *Handler) ClientProfiles(c *gin.Context) {
 				h.mu.Unlock()
 				return
 			}
-			p := clientprofiles.Profile{Ref: ref, Label: body.Label, Policies: clientprofiles.WithDefaultPolicies(body.Policies), Revision: next.ClientProfiles[index].Revision + 1}
+			saved := next.ClientProfiles[index]
+			p := clientprofiles.Profile{Ref: ref, Label: body.Label, Policies: clientprofiles.WithSavedPolicies(body.Policies, saved.Policies), Revision: saved.Revision + 1}
 			if err := clientprofiles.ValidateTargets(p, h.profileAccountsLocked()); err != nil {
 				profileError(c, 422, err)
 				h.mu.Unlock()
